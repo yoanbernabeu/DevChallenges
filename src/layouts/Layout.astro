@@ -1,4 +1,6 @@
 ---
+import { SEO } from "astro-seo";
+
 interface Props {
 	title: string;
 }
@@ -11,6 +13,28 @@ const { title } = Astro.props;
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>" />
+		<SEO
+			title={title}
+			description="Construisez votre portfolio de développeur en relevant un nouveau challenge chaque semaine. Stack libre, feedback communautaire, et progression garantie."
+			openGraph={{
+				basic: {
+					title: title,
+					type: "website",
+					image: "https://devchallenges.yoanbernabeu.com/og-image.png",
+				},
+				optional: {
+					description: "Construisez votre portfolio de développeur en relevant un nouveau challenge chaque semaine. Stack libre, feedback communautaire, et progression garantie.",
+					locale: "fr_FR",
+					siteName: "DevChallenges",
+				}
+			}}
+			twitter={{
+				card: "summary_large_image",
+				title: title,
+				description: "Construisez votre portfolio de développeur en relevant un nouveau challenge chaque semaine.",
+			}}
+		/>
 		<title>{title}</title>
 		<!-- FontAwesome pour les icônes -->
 		<link
