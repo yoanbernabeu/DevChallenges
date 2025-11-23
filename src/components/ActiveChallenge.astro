@@ -264,7 +264,7 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
                     const displayed = participants.slice(0, 5);
                     listEl.innerHTML = displayed.map(p => `
                         <a href="${p.url}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer block">
-                            <img src="${p.avatarUrl}" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar de ${p.username}" />
+                            <img src="${p.avatarUrl}" loading="lazy" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar de ${p.username}" />
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-white truncate">${p.username}</p>
                                 <p class="text-xs text-gray-500 truncate">Voir la solution</p>
@@ -297,7 +297,7 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
             if (modalListEl) {
                 modalListEl.innerHTML = participants.map(p => `
                     <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition">
-                        <img src="${p.avatarUrl}" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar de ${p.username}" />
+                        <img src="${p.avatarUrl}" loading="lazy" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar de ${p.username}" />
                         <div class="flex-1">
                             <p class="text-sm font-medium text-white">${p.username}</p>
                         </div>
