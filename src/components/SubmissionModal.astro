@@ -1,0 +1,121 @@
+<div id="submission-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop Blur -->
+    <div class="absolute inset-0 bg-[#0B0A16]/80 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+    
+    <!-- Modal Content Centering -->
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+        <!-- The Actual Card -->
+        <div id="modal-content" class="bg-[#1E1C2E] border border-white/10 w-full max-w-md rounded-2xl p-0 shadow-2xl modal-enter transform overflow-hidden relative">
+            
+            <!-- Decoration Top -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-purple to-brand-pink"></div>
+            <div class="absolute top-0 right-0 p-4">
+                <button id="close-modal-btn" class="text-gray-400 hover:text-white transition rounded-lg p-1 hover:bg-white/5">
+                    <i class="fa-solid fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-6 pt-8 text-center">
+                <div class="mx-auto w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple mb-4">
+                    <i class="fa-brands fa-github text-2xl"></i>
+                </div>
+                
+                <h3 class="text-xl font-bold text-white mb-2">Soumettre votre projet</h3>
+                <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+                    Pour que votre travail soit validé, vous devez créer une <span class="text-white font-medium">Issue GitHub</span> contenant obligatoirement le tag ci-dessous.
+                </p>
+
+                <!-- Tag Box -->
+                <div class="bg-[#0B0A16] border border-white/10 rounded-lg p-3 mb-6 flex items-center justify-between group">
+                    <code class="text-brand-pink font-mono text-sm tracking-wide">#WEEK-042</code>
+                    <span class="text-xs text-gray-600 uppercase font-bold tracking-wider">Tag Requis</span>
+                </div>
+
+                <!-- Action -->
+                <button id="create-issue-btn" class="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition mb-3 flex items-center justify-center gap-2">
+                    Créer l'issue sur GitHub
+                    <i class="fa-solid fa-external-link-alt text-xs opacity-50"></i>
+                </button>
+                
+                <button id="cancel-modal-btn" class="text-xs text-gray-500 hover:text-gray-300 transition">
+                    Annuler
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const REPO_URL = "https://github.com/votre-org/votre-repo"; 
+    const CURRENT_WEEK_TAG = "#WEEK-042";
+
+    function openSubmissionModal() {
+        const modal = document.getElementById('submission-modal');
+        const content = document.getElementById('modal-content');
+        
+        if (modal && content) {
+            modal.classList.remove('hidden');
+            // Petit délai pour permettre au navigateur de rendre l'élément avant d'appliquer la classe d'animation
+            setTimeout(() => {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-enter-active');
+            }, 10);
+        }
+    }
+
+    function closeSubmissionModal() {
+        const modal = document.getElementById('submission-modal');
+        const content = document.getElementById('modal-content');
+
+        if (modal && content) {
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-exit-active');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                content.classList.remove('modal-exit-active');
+                content.classList.add('modal-enter'); // Reset state
+            }, 200);
+        }
+    }
+
+    function goToGithubIssue() {
+        // Pré-remplissage du titre et du body
+        const title = encodeURIComponent(`${CURRENT_WEEK_TAG} - Mon Projet [Pseudo]`);
+        const body = encodeURIComponent(
+`## 🔗 Liens
+- **Demo Live:** [Insérer lien ici]
+- **Code Source:** [Insérer lien ici]
+
+## 🛠 Stack Technique
+- ...
+
+## 💡 Commentaires
+Ce que j'ai appris, difficultés rencontrées...`
+        );
+
+        window.open(`${REPO_URL}/issues/new?title=${title}&body=${body}`, '_blank');
+        closeSubmissionModal();
+    }
+
+    // Event Listeners
+    document.addEventListener('open-submission-modal', openSubmissionModal);
+
+    const closeBtn = document.getElementById('close-modal-btn');
+    if (closeBtn) closeBtn.addEventListener('click', closeSubmissionModal);
+
+    const cancelBtn = document.getElementById('cancel-modal-btn');
+    if (cancelBtn) cancelBtn.addEventListener('click', closeSubmissionModal);
+
+    const createIssueBtn = document.getElementById('create-issue-btn');
+    if (createIssueBtn) createIssueBtn.addEventListener('click', goToGithubIssue);
+
+    const modal = document.getElementById('submission-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeSubmissionModal();
+            }
+        });
+    }
+</script>

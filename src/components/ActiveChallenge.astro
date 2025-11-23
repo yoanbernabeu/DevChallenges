@@ -1,0 +1,174 @@
+<div id="active-challenge" class="relative">
+    <!-- Glow background -->
+    <div class="absolute -inset-1 bg-gradient-to-r from-brand-purple to-brand-pink rounded-2xl blur opacity-20"></div>
+    
+    <div class="relative glass-panel rounded-xl overflow-hidden">
+        <!-- Header Challenge -->
+        <div class="p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-red-500/10 text-red-400 border border-red-500/20 text-xs px-2 py-0.5 rounded uppercase tracking-wider font-bold animate-pulse">Live</span>
+                    <span class="text-gray-500 text-sm font-mono">#WEEK-042</span>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-2">SaaS Pricing Table Component</h2>
+                <p class="text-gray-400 max-w-xl">
+                    Créez un composant de tarification interactif avec toggle mensuel/annuel et mise en avant de l'offre recommandée.
+                </p>
+            </div>
+            
+            <!-- Timer Box -->
+            <div class="bg-brand-surface rounded-lg p-4 border border-white/5 min-w-[200px] text-center">
+                <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Temps restant</p>
+                <div id="timer-val" class="text-2xl font-mono font-bold text-white">--j --h --m</div>
+                <p class="text-xs text-brand-purple mt-1 font-medium">Fin: Dimanche 23h59</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3">
+            <!-- Left: Details & CTA -->
+            <div class="lg:col-span-2 p-8 border-r border-white/5 space-y-8">
+                
+                <!-- Stats Row -->
+                <div class="flex items-center gap-8">
+                    <div>
+                        <p class="text-2xl font-bold text-white">124</p>
+                        <p class="text-sm text-gray-500">Participants</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-white">Stack</p>
+                        <p class="text-sm text-gray-500">Libre (JS, React, Vue...)</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-white">Niveau</p>
+                        <p class="text-sm text-brand-pink font-medium">Intermédiaire</p>
+                    </div>
+                </div>
+
+                <!-- Brief -->
+                <div class="prose prose-invert prose-sm max-w-none text-gray-400">
+                    <h4 class="text-white font-heading">Le Brief</h4>
+                    <p>
+                        Votre mission est de construire un composant responsive. Le design doit s'adapter parfaitement au mobile. 
+                        <br>
+                        <strong>Bonus :</strong> Ajoutez une animation fluide lors du changement de toggle (Mois/Année).
+                    </p>
+                </div>
+
+                <!-- Main CTA -->
+                <div class="bg-brand-surface/50 rounded-xl p-6 border border-dashed border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h4 class="text-white font-bold text-sm">Prêt à coder ?</h4>
+                        <p class="text-xs text-gray-500">Soumettez votre repo via Pull Request.</p>
+                    </div>
+                    <!-- Bouton modifié pour ouvrir la modale -->
+                    <button id="open-modal-btn" class="w-full sm:w-auto px-6 py-2.5 bg-brand-purple hover:bg-brand-purple/90 text-white rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm shadow-[0_0_15px_rgba(124,58,237,0.4)]">
+                        <i class="fa-brands fa-github"></i>
+                        Proposer ma solution
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Latest Submissions (List) -->
+            <div class="p-8 bg-brand-surface/30">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold text-white text-sm uppercase tracking-wide">Derniers ajouts</h3>
+                    <a href="#" class="text-xs text-brand-purple hover:text-white transition">Tout voir (124) &rarr;</a>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Item 1 -->
+                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                        <img src="https://i.pravatar.cc/150?u=1" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-white truncate">Sophie Dev</p>
+                            <p class="text-xs text-gray-500 truncate">React + Tailwind</p>
+                        </div>
+                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                            <a href="#" class="text-gray-400 hover:text-white" title="Code"><i class="fa-brands fa-github"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-brand-accent" title="Demo"><i class="fa-solid fa-up-right-from-square"></i></a>
+                        </div>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                        <img src="https://i.pravatar.cc/150?u=2" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-white truncate">Alexandre K.</p>
+                            <p class="text-xs text-gray-500 truncate">Vue.js</p>
+                        </div>
+                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
+                        </div>
+                    </div>
+                    <!-- Item 3 -->
+                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                        <img src="https://i.pravatar.cc/150?u=3" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-white truncate">John Doe</p>
+                            <p class="text-xs text-gray-500 truncate">HTML/CSS Vanilla</p>
+                        </div>
+                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
+                        </div>
+                    </div>
+                     <!-- Item 4 -->
+                     <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                        <img src="https://i.pravatar.cc/150?u=4" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-white truncate">Sarah B.</p>
+                            <p class="text-xs text-gray-500 truncate">Svelte</p>
+                        </div>
+                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
+                        </div>
+                    </div>
+                     <!-- Item 5 -->
+                     <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                        <img src="https://i.pravatar.cc/150?u=8" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-white truncate">Momo Dev</p>
+                            <p class="text-xs text-gray-500 truncate">NextJS</p>
+                        </div>
+                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateCountdown() {
+        // Deadline simulée : Dimanche prochain
+        const deadline = new Date();
+        deadline.setDate(deadline.getDate() + (7 - deadline.getDay()) % 7);
+        deadline.setHours(23, 59, 59);
+        
+        const now = new Date().getTime();
+        const distance = deadline.getTime() - now;
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+        const timerVal = document.getElementById('timer-val');
+        if (timerVal) {
+            timerVal.innerText = `${days}j ${hours}h ${minutes}m`;
+        }
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 60000);
+
+    const openBtn = document.getElementById('open-modal-btn');
+    if (openBtn) {
+        openBtn.addEventListener('click', () => {
+            document.dispatchEvent(new CustomEvent('open-submission-modal'));
+        });
+    }
+</script>

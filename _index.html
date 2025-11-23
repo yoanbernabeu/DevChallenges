@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChallenges - Master Your Craft</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B0A16;
+            color: #e2e8f0;
+        }
+        
+        h1, h2, h3, h4, .font-heading {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Arrière-plan subtil et moderne */
+        .bg-mesh {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(45, 212, 191, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Glassmorphism SaaS style (plus net, moins flou) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Nav spécifique : plus sombre, plus flou, contour brillant */
+        .nav-island {
+            background: rgba(11, 10, 22, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Card Hover Effects */
+        .project-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal Animation */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 300ms ease-out, transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-exit {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .modal-exit-active {
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 200ms ease-in, transform 200ms ease-in;
+        }
+
+        /* Custom Scrollbar for infinite feeling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0A16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            purple: '#7c3aed',
+                            pink: '#db2777',
+                            dark: '#0B0A16',
+                            surface: '#1E1C2E'
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateCountdown() {
+            // Deadline simulée : Dimanche prochain
+            const deadline = new Date();
+            deadline.setDate(deadline.getDate() + (7 - deadline.getDay()) % 7);
+            deadline.setHours(23, 59, 59);
+            
+            const now = new Date().getTime();
+            const distance = deadline.getTime() - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+            document.getElementById('timer-val').innerText = `${days}j ${hours}h ${minutes}m`;
+        }
+
+        // --- MODAL LOGIC ---
+        const REPO_URL = "https://github.com/votre-org/votre-repo"; 
+        const CURRENT_WEEK_TAG = "#WEEK-042";
+
+        function openSubmissionModal() {
+            const modal = document.getElementById('submission-modal');
+            const content = document.getElementById('modal-content');
+            
+            modal.classList.remove('hidden');
+            // Petit délai pour permettre au navigateur de rendre l'élément avant d'appliquer la classe d'animation
+            setTimeout(() => {
+                content.classList.remove('modal-enter');
+                content.classList.add('modal-enter-active');
+            }, 10);
+        }
+
+        function closeSubmissionModal() {
+            const modal = document.getElementById('submission-modal');
+            const content = document.getElementById('modal-content');
+
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-exit-active');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                content.classList.remove('modal-exit-active');
+                content.classList.add('modal-enter'); // Reset state
+            }, 200);
+        }
+
+        function goToGithubIssue() {
+            // Pré-remplissage du titre et du body
+            const title = encodeURIComponent(`${CURRENT_WEEK_TAG} - Mon Projet [Pseudo]`);
+            const body = encodeURIComponent(
+`## 🔗 Liens
+- **Demo Live:** [Insérer lien ici]
+- **Code Source:** [Insérer lien ici]
+
+## 🛠 Stack Technique
+- ...
+
+## 💡 Commentaires
+Ce que j'ai appris, difficultés rencontrées...`
+            );
+
+            window.open(`${REPO_URL}/issues/new?title=${title}&body=${body}`, '_blank');
+            closeSubmissionModal();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCountdown();
+            setInterval(updateCountdown, 60000);
+
+            // Close modal on click outside
+            document.getElementById('submission-modal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    closeSubmissionModal();
+                }
+            });
+        });
+    </script>
+</head>
+<body class="min-h-screen bg-mesh selection:bg-brand-purple selection:text-white flex flex-col">
+
+    <!-- Navbar "Floating Island" Design -->
+    <div class="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
+        <nav class="nav-island w-full max-w-5xl rounded-full px-2 py-2 flex items-center justify-between transition-all duration-300">
+            
+            <!-- Logo Area -->
+            <div class="flex items-center gap-3 pl-4">
+                <div class="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-brand-purple to-brand-pink shadow-lg shadow-purple-500/20">
+                    <i class="fa-solid fa-code text-white text-xs"></i>
+                    <!-- Petit point brillant -->
+                    <div class="absolute inset-0 rounded-full bg-white opacity-20 blur-sm"></div>
+                </div>
+                <span class="font-heading font-bold text-lg tracking-tight text-white hidden sm:block">DevChallenges</span>
+            </div>
+
+            <!-- Center Links (Pill style hover) -->
+            <div class="hidden md:flex items-center bg-white/5 rounded-full px-1 py-1 border border-white/5">
+                <a href="#active-challenge" class="px-5 py-1.5 text-sm font-medium text-gray-300 rounded-full hover:bg-white/10 hover:text-white transition-all">Actuel</a>
+                <a href="#archive" class="px-5 py-1.5 text-sm font-medium text-gray-300 rounded-full hover:bg-white/10 hover:text-white transition-all">Archives</a>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="flex items-center gap-3 pr-2">
+                <!-- Mobile only link equivalent -->
+                <a href="#active-challenge" class="md:hidden text-sm font-medium text-gray-300 px-2">Actuel</a>
+                
+                <a href="https://github.com/votre-repo" target="_blank" class="group relative inline-flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-white/10 rounded-full overflow-hidden transition-all hover:bg-white/20 hover:scale-105 border border-white/5">
+                    <span class="relative z-10 flex items-center gap-2">
+                        <i class="fa-brands fa-github text-lg"></i>
+                        <span class="hidden sm:inline">Star on GitHub</span>
+                    </span>
+                    <!-- Shimmer effect -->
+                    <div class="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent z-0"></div>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-32 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-20">
+
+        <!-- Hero Section -->
+        <div class="text-center space-y-6 max-w-3xl mx-auto mb-20">
+            <div class="inline-flex items-center px-3 py-1 rounded-full border border-brand-purple/30 bg-brand-purple/10 text-brand-purple text-xs font-medium mb-2">
+                <span class="flex h-2 w-2 rounded-full bg-brand-purple mr-2"></span>
+                Nouveau challenge disponible
+            </div>
+            <h1 class="text-5xl sm:text-6xl font-bold text-white tracking-tight leading-tight">
+                Construisez votre portfolio <br />
+                <span class="text-gradient">Une semaine à la fois.</span>
+            </h1>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                Chaque lundi, un nouveau projet réaliste à coder. Stack libre. Feedback communautaire. Progressez en pratiquant.
+            </p>
+            <div class="pt-4 flex justify-center gap-4">
+                <a href="#active-challenge" class="px-8 py-3 rounded-lg bg-white text-brand-dark font-bold hover:bg-gray-100 transition shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                    Voir le défi actuel
+                </a>
+                <a href="#archive" class="px-8 py-3 rounded-lg border border-white/10 text-white hover:bg-white/5 transition">
+                    Explorer les archives
+                </a>
+            </div>
+        </div>
+
+        <!-- ACTIVE CHALLENGE SECTION (Feature Highlight) -->
+        <div id="active-challenge" class="relative">
+            <!-- Glow background -->
+            <div class="absolute -inset-1 bg-gradient-to-r from-brand-purple to-brand-pink rounded-2xl blur opacity-20"></div>
+            
+            <div class="relative glass-panel rounded-xl overflow-hidden">
+                <!-- Header Challenge -->
+                <div class="p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-red-500/10 text-red-400 border border-red-500/20 text-xs px-2 py-0.5 rounded uppercase tracking-wider font-bold animate-pulse">Live</span>
+                            <span class="text-gray-500 text-sm font-mono">#WEEK-042</span>
+                        </div>
+                        <h2 class="text-3xl font-bold text-white mb-2">SaaS Pricing Table Component</h2>
+                        <p class="text-gray-400 max-w-xl">
+                            Créez un composant de tarification interactif avec toggle mensuel/annuel et mise en avant de l'offre recommandée.
+                        </p>
+                    </div>
+                    
+                    <!-- Timer Box -->
+                    <div class="bg-brand-surface rounded-lg p-4 border border-white/5 min-w-[200px] text-center">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Temps restant</p>
+                        <div id="timer-val" class="text-2xl font-mono font-bold text-white">--j --h --m</div>
+                        <p class="text-xs text-brand-purple mt-1 font-medium">Fin: Dimanche 23h59</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3">
+                    <!-- Left: Details & CTA -->
+                    <div class="lg:col-span-2 p-8 border-r border-white/5 space-y-8">
+                        
+                        <!-- Stats Row -->
+                        <div class="flex items-center gap-8">
+                            <div>
+                                <p class="text-2xl font-bold text-white">124</p>
+                                <p class="text-sm text-gray-500">Participants</p>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">Stack</p>
+                                <p class="text-sm text-gray-500">Libre (JS, React, Vue...)</p>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold text-white">Niveau</p>
+                                <p class="text-sm text-brand-pink font-medium">Intermédiaire</p>
+                            </div>
+                        </div>
+
+                        <!-- Brief -->
+                        <div class="prose prose-invert prose-sm max-w-none text-gray-400">
+                            <h4 class="text-white font-heading">Le Brief</h4>
+                            <p>
+                                Votre mission est de construire un composant responsive. Le design doit s'adapter parfaitement au mobile. 
+                                <br>
+                                <strong>Bonus :</strong> Ajoutez une animation fluide lors du changement de toggle (Mois/Année).
+                            </p>
+                        </div>
+
+                        <!-- Main CTA -->
+                        <div class="bg-brand-surface/50 rounded-xl p-6 border border-dashed border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div>
+                                <h4 class="text-white font-bold text-sm">Prêt à coder ?</h4>
+                                <p class="text-xs text-gray-500">Soumettez votre repo via Pull Request.</p>
+                            </div>
+                            <!-- Bouton modifié pour ouvrir la modale -->
+                            <button onclick="openSubmissionModal()" class="w-full sm:w-auto px-6 py-2.5 bg-brand-purple hover:bg-brand-purple/90 text-white rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm shadow-[0_0_15px_rgba(124,58,237,0.4)]">
+                                <i class="fa-brands fa-github"></i>
+                                Proposer ma solution
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Latest Submissions (List) -->
+                    <div class="p-8 bg-brand-surface/30">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-white text-sm uppercase tracking-wide">Derniers ajouts</h3>
+                            <a href="#" class="text-xs text-brand-purple hover:text-white transition">Tout voir (124) &rarr;</a>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Item 1 -->
+                            <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                                <img src="https://i.pravatar.cc/150?u=1" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-white truncate">Sophie Dev</p>
+                                    <p class="text-xs text-gray-500 truncate">React + Tailwind</p>
+                                </div>
+                                <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                                    <a href="#" class="text-gray-400 hover:text-white" title="Code"><i class="fa-brands fa-github"></i></a>
+                                    <a href="#" class="text-gray-400 hover:text-brand-accent" title="Demo"><i class="fa-solid fa-up-right-from-square"></i></a>
+                                </div>
+                            </div>
+                            <!-- Item 2 -->
+                            <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                                <img src="https://i.pravatar.cc/150?u=2" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-white truncate">Alexandre K.</p>
+                                    <p class="text-xs text-gray-500 truncate">Vue.js</p>
+                                </div>
+                                <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
+                                    <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
+                                </div>
+                            </div>
+                            <!-- Item 3 -->
+                            <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                                <img src="https://i.pravatar.cc/150?u=3" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-white truncate">John Doe</p>
+                                    <p class="text-xs text-gray-500 truncate">HTML/CSS Vanilla</p>
+                                </div>
+                                <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
+                                    <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
+                                </div>
+                            </div>
+                             <!-- Item 4 -->
+                             <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                                <img src="https://i.pravatar.cc/150?u=4" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-white truncate">Sarah B.</p>
+                                    <p class="text-xs text-gray-500 truncate">Svelte</p>
+                                </div>
+                                <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
+                                    <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
+                                </div>
+                            </div>
+                             <!-- Item 5 -->
+                             <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
+                                <img src="https://i.pravatar.cc/150?u=8" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-white truncate">Momo Dev</p>
+                                    <p class="text-xs text-gray-500 truncate">NextJS</p>
+                                </div>
+                                <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                                    <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
+                                    <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAST PROJECTS GRID (Infinite Scroll Vibe) -->
+        <div id="archive" class="space-y-8">
+            <div class="flex justify-between items-end border-b border-white/10 pb-4">
+                <h2 class="text-3xl font-bold text-white">Archives</h2>
+                
+                <!-- Filters -->
+                <div class="flex gap-2">
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-white text-black">Tout</button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition">Facile</button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition">Difficile</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <a href="#" class="project-card block glass-panel rounded-xl overflow-hidden group">
+                    <div class="h-40 bg-gray-800 relative overflow-hidden">
+                        <!-- Placeholder Gradient -->
+                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-900 to-gray-900"></div>
+                        <div class="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-white/20 group-hover:scale-110 transition duration-500">
+                            Weather App
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-brand-purple transition">App Météo</h3>
+                            <span class="text-xs px-2 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">Easy</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 line-clamp-2">Consommer une API tierce pour afficher la météo locale.</p>
+                        <div class="flex items-center text-xs text-gray-500 gap-4">
+                            <span><i class="fa-regular fa-calendar mr-1"></i> Week 41</span>
+                            <span><i class="fa-solid fa-users mr-1"></i> 89 solutions</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 2 -->
+                <a href="#" class="project-card block glass-panel rounded-xl overflow-hidden group">
+                    <div class="h-40 bg-gray-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-purple-900 to-gray-900"></div>
+                        <div class="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-white/20 group-hover:scale-110 transition duration-500">
+                            Kanban Board
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-brand-purple transition">Kanban Board</h3>
+                            <span class="text-xs px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">Hard</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 line-clamp-2">Gestionnaire de tâches avec Drag & Drop natif HTML5.</p>
+                        <div class="flex items-center text-xs text-gray-500 gap-4">
+                            <span><i class="fa-regular fa-calendar mr-1"></i> Week 40</span>
+                            <span><i class="fa-solid fa-users mr-1"></i> 54 solutions</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 3 -->
+                <a href="#" class="project-card block glass-panel rounded-xl overflow-hidden group">
+                    <div class="h-40 bg-gray-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-pink-900 to-gray-900"></div>
+                        <div class="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-white/20 group-hover:scale-110 transition duration-500">
+                            Landing Page
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-brand-purple transition">Startup Landing</h3>
+                            <span class="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Medium</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 line-clamp-2">Intégration pixel-perfect d'une maquette Figma fournie.</p>
+                        <div class="flex items-center text-xs text-gray-500 gap-4">
+                            <span><i class="fa-regular fa-calendar mr-1"></i> Week 39</span>
+                            <span><i class="fa-solid fa-users mr-1"></i> 112 solutions</span>
+                        </div>
+                    </div>
+                </a>
+
+                 <!-- Card 4 -->
+                 <a href="#" class="project-card block glass-panel rounded-xl overflow-hidden group">
+                    <div class="h-40 bg-gray-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-teal-900 to-gray-900"></div>
+                        <div class="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-white/20 group-hover:scale-110 transition duration-500">
+                            Quiz App
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-brand-purple transition">Quiz Game</h3>
+                            <span class="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Medium</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 line-clamp-2">Logique de score, timer et questions dynamiques.</p>
+                        <div class="flex items-center text-xs text-gray-500 gap-4">
+                            <span><i class="fa-regular fa-calendar mr-1"></i> Week 38</span>
+                            <span><i class="fa-solid fa-users mr-1"></i> 95 solutions</span>
+                        </div>
+                    </div>
+                </a>
+
+                 <!-- Card 5 -->
+                 <a href="#" class="project-card block glass-panel rounded-xl overflow-hidden group">
+                    <div class="h-40 bg-gray-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-red-900 to-gray-900"></div>
+                        <div class="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-white/20 group-hover:scale-110 transition duration-500">
+                            Pomodoro
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-brand-purple transition">Timer Pomodoro</h3>
+                            <span class="text-xs px-2 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">Easy</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 line-clamp-2">Gestion du temps, notifications audio et cycles.</p>
+                        <div class="flex items-center text-xs text-gray-500 gap-4">
+                            <span><i class="fa-regular fa-calendar mr-1"></i> Week 37</span>
+                            <span><i class="fa-solid fa-users mr-1"></i> 76 solutions</span>
+                        </div>
+                    </div>
+                </a>
+
+                 <!-- Card 6 -->
+                 <a href="#" class="project-card block glass-panel rounded-xl overflow-hidden group">
+                    <div class="h-40 bg-gray-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-yellow-900 to-gray-900"></div>
+                        <div class="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-white/20 group-hover:scale-110 transition duration-500">
+                            Markdown
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-bold text-white group-hover:text-brand-purple transition">Markdown Previewer</h3>
+                            <span class="text-xs px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">Hard</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 line-clamp-2">Preview en temps réel de syntaxe Markdown.</p>
+                        <div class="flex items-center text-xs text-gray-500 gap-4">
+                            <span><i class="fa-regular fa-calendar mr-1"></i> Week 36</span>
+                            <span><i class="fa-solid fa-users mr-1"></i> 42 solutions</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Loader infinite scroll -->
+            <div class="pt-8 flex justify-center">
+                <button class="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400 hover:text-white hover:bg-white/10 transition flex items-center gap-2">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-purple opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-brand-purple"></span>
+                    </span>
+                    Charger plus de projets...
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer avec CTA Idea -->
+    <footer class="border-t border-white/5 bg-[#0B0A16] mt-auto relative overflow-hidden">
+        <!-- Decoration light top -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-px bg-gradient-to-r from-transparent via-brand-purple/50 to-transparent"></div>
+
+        <div class="max-w-7xl mx-auto pt-12 pb-8 px-4 sm:px-6 lg:px-8">
+            
+            <!-- Call to Action: Proposer un challenge -->
+            <div class="bg-white/5 rounded-2xl p-6 md:p-8 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 border border-white/5 relative overflow-hidden group hover:border-brand-purple/30 transition-colors duration-300">
+                <!-- Background Glow -->
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl group-hover:bg-brand-purple/20 transition duration-500"></div>
+                
+                <div class="relative z-10 text-center md:text-left">
+                    <h3 class="text-xl font-bold text-white mb-2 flex items-center justify-center md:justify-start gap-2">
+                        <i class="fa-regular fa-lightbulb text-yellow-400"></i>
+                        Une idée de challenge ?
+                    </h3>
+                    <p class="text-gray-400 text-sm max-w-lg">
+                        Les meilleurs projets viennent de la communauté. Proposez un sujet (API, Design, Algo...) et voyez-le codé par des centaines de développeurs.
+                    </p>
+                </div>
+                
+                <a href="https://github.com/votre-org/votre-repo/issues/new?title=%23IDEA%20-%20[Titre%20de%20votre%20id%C3%A9e]&body=**Description%20du%20challenge**%0A%0A**Stack%20sugg%C3%A9r%C3%A9e%20(optionnel)**%0A..." target="_blank" class="relative z-10 px-6 py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition whitespace-nowrap flex items-center gap-2 shadow-lg shadow-white/5">
+                    Proposer un sujet
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </a>
+            </div>
+
+            <!-- Bottom Footer -->
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-white/5">
+                <p class="text-sm text-gray-500">&copy; 2025 DevChallenges. Open Source Community.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-500 hover:text-white transition transform hover:scale-110"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="text-gray-500 hover:text-white transition transform hover:scale-110"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="text-gray-500 hover:text-white transition transform hover:scale-110"><i class="fa-brands fa-discord"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL DE SOUMISSION -->
+    <div id="submission-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+        <!-- Backdrop Blur -->
+        <div class="absolute inset-0 bg-[#0B0A16]/80 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+        
+        <!-- Modal Content Centering -->
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <!-- The Actual Card -->
+            <div id="modal-content" class="bg-[#1E1C2E] border border-white/10 w-full max-w-md rounded-2xl p-0 shadow-2xl modal-enter transform overflow-hidden relative">
+                
+                <!-- Decoration Top -->
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-purple to-brand-pink"></div>
+                <div class="absolute top-0 right-0 p-4">
+                    <button onclick="closeSubmissionModal()" class="text-gray-400 hover:text-white transition rounded-lg p-1 hover:bg-white/5">
+                        <i class="fa-solid fa-times text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 pt-8 text-center">
+                    <div class="mx-auto w-12 h-12 rounded-full bg-brand-purple/20 flex items-center justify-center text-brand-purple mb-4">
+                        <i class="fa-brands fa-github text-2xl"></i>
+                    </div>
+                    
+                    <h3 class="text-xl font-bold text-white mb-2">Soumettre votre projet</h3>
+                    <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+                        Pour que votre travail soit validé, vous devez créer une <span class="text-white font-medium">Issue GitHub</span> contenant obligatoirement le tag ci-dessous.
+                    </p>
+
+                    <!-- Tag Box -->
+                    <div class="bg-[#0B0A16] border border-white/10 rounded-lg p-3 mb-6 flex items-center justify-between group">
+                        <code class="text-brand-pink font-mono text-sm tracking-wide">#WEEK-042</code>
+                        <span class="text-xs text-gray-600 uppercase font-bold tracking-wider">Tag Requis</span>
+                    </div>
+
+                    <!-- Action -->
+                    <button onclick="goToGithubIssue()" class="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition mb-3 flex items-center justify-center gap-2">
+                        Créer l'issue sur GitHub
+                        <i class="fa-solid fa-external-link-alt text-xs opacity-50"></i>
+                    </button>
+                    
+                    <button onclick="closeSubmissionModal()" class="text-xs text-gray-500 hover:text-gray-300 transition">
+                        Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
