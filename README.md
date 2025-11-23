@@ -1,6 +1,6 @@
 # DevChallenges Solutions
 
-Welcome to my collection of solutions for [DevChallenges.io](https://devchallenges.io/). This repository contains various web development challenges implemented using modern technologies.
+Welcome to my collection of solutions for [DevChallenges.yoandev.co](https://devchallenges.yoandev.co). This repository contains various web development challenges implemented using modern technologies.
 
 ## 🚀 Technologies
 
