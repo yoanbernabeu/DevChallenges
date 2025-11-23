@@ -1,0 +1,72 @@
+[
+    {
+        "id": "week-47",
+        "slug": "saas-pricing-table",
+        "title": "SaaS Pricing Table Component",
+        "description": "Créez un composant de tarification interactif avec toggle mensuel/annuel et mise en avant de l'offre recommandée.",
+        "brief": "Votre mission est de construire un composant responsive. Le design doit s'adapter parfaitement au mobile. <br> <strong>Bonus :</strong> Ajoutez une animation fluide lors du changement de toggle (Mois/Année).",
+        "difficulty": "Medium",
+        "startDate": "2025-11-23T00:00:00Z",
+        "tag": "WEEK-47"
+    },
+    {
+        "id": "week-41",
+        "slug": "weather-app",
+        "title": "App Météo",
+        "description": "Consommer une API tierce pour afficher la météo locale.",
+        "brief": "Utilisez l'API OpenWeatherMap ou similaire.",
+        "difficulty": "Easy",
+        "startDate": "2025-11-10T00:00:00Z",
+        "tag": "WEEK-41"
+    },
+    {
+        "id": "week-40",
+        "slug": "kanban-board",
+        "title": "Kanban Board",
+        "description": "Gestionnaire de tâches avec Drag & Drop natif HTML5.",
+        "brief": "Implémentez un tableau Kanban avec colonnes dynamiques.",
+        "difficulty": "Hard",
+        "startDate": "2025-11-03T00:00:00Z",
+        "tag": "WEEK-40"
+    },
+    {
+        "id": "week-39",
+        "slug": "startup-landing",
+        "title": "Startup Landing",
+        "description": "Intégration pixel-perfect d'une maquette Figma fournie.",
+        "brief": "Respectez scrupuleusement les espacements et la typographie.",
+        "difficulty": "Medium",
+        "startDate": "2025-10-27T00:00:00Z",
+        "tag": "WEEK-39"
+    },
+    {
+        "id": "week-38",
+        "slug": "quiz-game",
+        "title": "Quiz Game",
+        "description": "Logique de score, timer et questions dynamiques.",
+        "brief": "Créez un quiz avec 10 questions aléatoires.",
+        "difficulty": "Medium",
+        "startDate": "2025-10-20T00:00:00Z",
+        "tag": "WEEK-38"
+    },
+    {
+        "id": "week-37",
+        "slug": "timer-pomodoro",
+        "title": "Timer Pomodoro",
+        "description": "Gestion du temps, notifications audio et cycles.",
+        "brief": "Implémentez la technique Pomodoro (25min travail / 5min pause).",
+        "difficulty": "Easy",
+        "startDate": "2025-10-13T00:00:00Z",
+        "tag": "WEEK-37"
+    },
+    {
+        "id": "week-36",
+        "slug": "markdown-previewer",
+        "title": "Markdown Previewer",
+        "description": "Preview en temps réel de syntaxe Markdown.",
+        "brief": "Utilisez une librairie comme marked.js ou faites-le à la main.",
+        "difficulty": "Hard",
+        "startDate": "2025-10-06T00:00:00Z",
+        "tag": "WEEK-36"
+    }
+]

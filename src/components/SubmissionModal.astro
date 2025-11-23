@@ -1,3 +1,18 @@
+---
+import challenges from '../data/challenges.json';
+
+const now = new Date();
+const activeChallenge = challenges.map(c => {
+    const start = new Date(c.startDate.replace('Z', ''));
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    return { ...c, startObj: start, endObj: end };
+}).find(c => now >= c.startObj && now <= c.endObj);
+
+const activeTag = activeChallenge ? activeChallenge.tag : 'WEEK-XX';
+---
+
 <div id="submission-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
     <!-- Backdrop Blur -->
     <div class="absolute inset-0 bg-[#0B0A16]/80 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
@@ -27,7 +42,7 @@
 
                 <!-- Tag Box -->
                 <div class="bg-[#0B0A16] border border-white/10 rounded-lg p-3 mb-6 flex items-center justify-between group">
-                    <code class="text-brand-pink font-mono text-sm tracking-wide">#WEEK-042</code>
+                    <code id="modal-tag" class="text-brand-pink font-mono text-sm tracking-wide">#{activeTag}</code>
                     <span class="text-xs text-gray-600 uppercase font-bold tracking-wider">Tag Requis</span>
                 </div>
 
@@ -45,14 +60,21 @@
     </div>
 </div>
 
-<script>
-    const REPO_URL = "https://github.com/votre-org/votre-repo"; 
-    const CURRENT_WEEK_TAG = "#WEEK-042";
+<script define:vars={{ activeTag }}>
+    const REPO_URL = "https://github.com/yoanbernabeu/DevChallenges"; 
+    let currentTag = activeTag;
 
-    function openSubmissionModal() {
+    function openSubmissionModal(e) {
         const modal = document.getElementById('submission-modal');
         const content = document.getElementById('modal-content');
         
+        // Update Tag if provided
+        if (e && e.detail && e.detail.tag) {
+            currentTag = e.detail.tag;
+            const tagCode = document.getElementById('modal-tag');
+            if (tagCode) tagCode.innerText = `#${currentTag}`;
+        }
+
         if (modal && content) {
             modal.classList.remove('hidden');
             // Petit délai pour permettre au navigateur de rendre l'élément avant d'appliquer la classe d'animation
@@ -81,7 +103,7 @@
 
     function goToGithubIssue() {
         // Pré-remplissage du titre et du body
-        const title = encodeURIComponent(`${CURRENT_WEEK_TAG} - Mon Projet [Pseudo]`);
+        const title = encodeURIComponent(`#${currentTag} - Mon Projet [Pseudo]`);
         const body = encodeURIComponent(
 `## 🔗 Liens
 - **Demo Live:** [Insérer lien ici]
@@ -119,3 +141,4 @@ Ce que j'ai appris, difficultés rencontrées...`
         });
     }
 </script>
+

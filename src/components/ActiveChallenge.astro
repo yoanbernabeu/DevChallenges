@@ -1,4 +1,33 @@
-<div id="active-challenge" class="relative">
+---
+import challenges from '../data/challenges.json';
+
+const now = new Date();
+const activeChallenge = challenges.map(c => {
+    const start = new Date(c.startDate.replace('Z', ''));
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6); // Sunday to Saturday
+    end.setHours(23, 59, 59, 999);
+    return { ...c, startObj: start, endObj: end };
+}).find(c => now >= c.startObj && now <= c.endObj);
+
+// Fallback if no active challenge found (optional: show next upcoming or a default)
+// For now, if no active challenge, we might want to show the next one as "Starting soon" or just the last one?
+// The user request implies "active" is what's running.
+// If activeChallenge is undefined, the UI might break if we don't handle it.
+// Let's assume for this step we just find the active one.
+
+// Format date for display (e.g., "Dimanche 30 Nov. 23h59")
+const endDate = activeChallenge ? activeChallenge.endObj : new Date();
+const formattedDate = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: 'numeric'
+}).format(endDate);
+---
+
+<div id="active-challenge" class="relative" data-tag={activeChallenge?.tag} data-end-date={endDate.toISOString()}>
     <!-- Glow background -->
     <div class="absolute -inset-1 bg-gradient-to-r from-brand-purple to-brand-pink rounded-2xl blur opacity-20"></div>
     
@@ -8,11 +37,11 @@
             <div>
                 <div class="flex items-center gap-3 mb-2">
                     <span class="bg-red-500/10 text-red-400 border border-red-500/20 text-xs px-2 py-0.5 rounded uppercase tracking-wider font-bold animate-pulse">Live</span>
-                    <span class="text-gray-500 text-sm font-mono">#WEEK-042</span>
+                    <span class="text-gray-500 text-sm font-mono">#{activeChallenge?.tag}</span>
                 </div>
-                <h2 class="text-3xl font-bold text-white mb-2">SaaS Pricing Table Component</h2>
+                <h2 class="text-3xl font-bold text-white mb-2">{activeChallenge?.title}</h2>
                 <p class="text-gray-400 max-w-xl">
-                    Créez un composant de tarification interactif avec toggle mensuel/annuel et mise en avant de l'offre recommandée.
+                    {activeChallenge?.description}
                 </p>
             </div>
             
@@ -20,7 +49,7 @@
             <div class="bg-brand-surface rounded-lg p-4 border border-white/5 min-w-[200px] text-center">
                 <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Temps restant</p>
                 <div id="timer-val" class="text-2xl font-mono font-bold text-white">--j --h --m</div>
-                <p class="text-xs text-brand-purple mt-1 font-medium">Fin: Dimanche 23h59</p>
+                <p class="text-xs text-brand-purple mt-1 font-medium capitalize">Fin: {formattedDate}</p>
             </div>
         </div>
 
@@ -31,27 +60,23 @@
                 <!-- Stats Row -->
                 <div class="flex items-center gap-8">
                     <div>
-                        <p class="text-2xl font-bold text-white">124</p>
+                        <p id="participant-count" class="text-2xl font-bold text-white">--</p>
                         <p class="text-sm text-gray-500">Participants</p>
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-white">Stack</p>
-                        <p class="text-sm text-gray-500">Libre (JS, React, Vue...)</p>
+                        <p class="text-sm text-gray-500">Libre</p>
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-white">Niveau</p>
-                        <p class="text-sm text-brand-pink font-medium">Intermédiaire</p>
+                        <p class="text-sm text-brand-pink font-medium">{activeChallenge?.difficulty}</p>
                     </div>
                 </div>
 
                 <!-- Brief -->
                 <div class="prose prose-invert prose-sm max-w-none text-gray-400">
                     <h4 class="text-white font-heading">Le Brief</h4>
-                    <p>
-                        Votre mission est de construire un composant responsive. Le design doit s'adapter parfaitement au mobile. 
-                        <br>
-                        <strong>Bonus :</strong> Ajoutez une animation fluide lors du changement de toggle (Mois/Année).
-                    </p>
+                    <p set:html={activeChallenge?.brief}></p>
                 </div>
 
                 <!-- Main CTA -->
@@ -72,68 +97,25 @@
             <div class="p-8 bg-brand-surface/30">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="font-bold text-white text-sm uppercase tracking-wide">Derniers ajouts</h3>
-                    <a href="#" class="text-xs text-brand-purple hover:text-white transition">Tout voir (124) &rarr;</a>
+                    <button id="see-all-participants-btn" class="hidden text-xs text-brand-purple hover:text-white transition">Tout voir <span id="see-all-count"></span> &rarr;</button>
                 </div>
                 
-                <div class="space-y-4">
-                    <!-- Item 1 -->
-                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
-                        <img src="https://i.pravatar.cc/150?u=1" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-white truncate">Sophie Dev</p>
-                            <p class="text-xs text-gray-500 truncate">React + Tailwind</p>
+                <div id="participants-list" class="space-y-4 min-h-[200px] flex flex-col justify-center">
+                    <!-- Loading State -->
+                    <div class="animate-pulse space-y-4">
+                        <div class="flex items-center gap-3 p-3">
+                            <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                            <div class="flex-1 space-y-2">
+                                <div class="h-4 bg-white/10 rounded w-1/2"></div>
+                                <div class="h-3 bg-white/5 rounded w-1/3"></div>
+                            </div>
                         </div>
-                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
-                            <a href="#" class="text-gray-400 hover:text-white" title="Code"><i class="fa-brands fa-github"></i></a>
-                            <a href="#" class="text-gray-400 hover:text-brand-accent" title="Demo"><i class="fa-solid fa-up-right-from-square"></i></a>
-                        </div>
-                    </div>
-                    <!-- Item 2 -->
-                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
-                        <img src="https://i.pravatar.cc/150?u=2" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-white truncate">Alexandre K.</p>
-                            <p class="text-xs text-gray-500 truncate">Vue.js</p>
-                        </div>
-                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
-                            <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
-                            <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
-                        </div>
-                    </div>
-                    <!-- Item 3 -->
-                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
-                        <img src="https://i.pravatar.cc/150?u=3" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-white truncate">John Doe</p>
-                            <p class="text-xs text-gray-500 truncate">HTML/CSS Vanilla</p>
-                        </div>
-                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
-                            <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
-                            <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
-                        </div>
-                    </div>
-                     <!-- Item 4 -->
-                     <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
-                        <img src="https://i.pravatar.cc/150?u=4" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-white truncate">Sarah B.</p>
-                            <p class="text-xs text-gray-500 truncate">Svelte</p>
-                        </div>
-                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
-                            <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
-                            <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
-                        </div>
-                    </div>
-                     <!-- Item 5 -->
-                     <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer">
-                        <img src="https://i.pravatar.cc/150?u=8" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-white truncate">Momo Dev</p>
-                            <p class="text-xs text-gray-500 truncate">NextJS</p>
-                        </div>
-                        <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
-                            <a href="#" class="text-gray-400 hover:text-white"><i class="fa-brands fa-github"></i></a>
-                            <a href="#" class="text-gray-400 hover:text-brand-accent"><i class="fa-solid fa-up-right-from-square"></i></a>
+                        <div class="flex items-center gap-3 p-3">
+                            <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                            <div class="flex-1 space-y-2">
+                                <div class="h-4 bg-white/10 rounded w-1/2"></div>
+                                <div class="h-3 bg-white/5 rounded w-1/3"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -142,33 +124,199 @@
     </div>
 </div>
 
+<!-- Participants Modal -->
+<div id="participants-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <div class="absolute inset-0 bg-[#0B0A16]/80 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+        <div class="bg-[#1E1C2E] border border-white/10 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white">Tous les participants</h3>
+                <button id="close-participants-modal-btn" class="text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div id="modal-participants-list" class="overflow-y-auto flex-1 space-y-2 pr-2 custom-scrollbar">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    import { getParticipants } from '../utils/github';
+
+    // Timer Logic
     function updateCountdown() {
-        // Deadline simulée : Dimanche prochain
-        const deadline = new Date();
-        deadline.setDate(deadline.getDate() + (7 - deadline.getDay()) % 7);
-        deadline.setHours(23, 59, 59);
+        const container = document.getElementById('active-challenge');
+        const endDateStr = container?.dataset.endDate;
         
+        if (!endDateStr) return;
+
+        const deadline = new Date(endDateStr);
         const now = new Date().getTime();
         const distance = deadline.getTime() - now;
+
+        if (distance < 0) {
+            const timerVal = document.getElementById('timer-val');
+            if (timerVal) timerVal.innerText = "Terminé";
+            return;
+        }
 
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
         const timerVal = document.getElementById('timer-val');
         if (timerVal) {
-            timerVal.innerText = `${days}j ${hours}h ${minutes}m`;
+            timerVal.innerText = `${days}j ${hours}h ${minutes}m ${seconds}s`;
         }
     }
 
     updateCountdown();
-    setInterval(updateCountdown, 60000);
+    setInterval(updateCountdown, 1000);
 
+    // Modal Logic
     const openBtn = document.getElementById('open-modal-btn');
     if (openBtn) {
         openBtn.addEventListener('click', () => {
-            document.dispatchEvent(new CustomEvent('open-submission-modal'));
+            const container = document.getElementById('active-challenge');
+            const tag = container?.dataset.tag;
+            document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag } }));
         });
     }
+
+    const participantsModal = document.getElementById('participants-modal');
+    const seeAllBtn = document.getElementById('see-all-participants-btn');
+    const closeParticipantsBtn = document.getElementById('close-participants-modal-btn');
+
+    if (seeAllBtn && participantsModal) {
+        seeAllBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            participantsModal.classList.remove('hidden');
+        });
+    }
+
+    if (closeParticipantsBtn && participantsModal) {
+        closeParticipantsBtn.addEventListener('click', () => {
+            participantsModal.classList.add('hidden');
+        });
+    }
+
+    if (participantsModal) {
+        participantsModal.addEventListener('click', (e) => {
+            if (e.target === participantsModal) {
+                participantsModal.classList.add('hidden');
+            }
+        });
+    }
+
+    // Fetch Participants Logic
+    async function initParticipants() {
+        const container = document.getElementById('active-challenge');
+        const tag = container?.dataset.tag;
+        
+        if (!tag) return;
+
+        try {
+            const participants = await getParticipants(tag);
+            
+            // Update Count
+            const countEl = document.getElementById('participant-count');
+            if (countEl) countEl.innerText = participants.length.toString();
+
+            // Update List
+            const listEl = document.getElementById('participants-list');
+            if (listEl) {
+                if (participants.length === 0) {
+                    listEl.innerHTML = `
+                        <div class="text-center py-8">
+                            <p class="text-gray-400 text-sm mb-2">Aucune participation pour le moment.</p>
+                            <button id="be-first-btn" class="text-brand-purple font-bold text-sm hover:underline cursor-pointer">Soyez le/la première dev ! 🚀</button>
+                        </div>
+                    `;
+                    
+                    // Add event listener to the new button
+                    const beFirstBtn = document.getElementById('be-first-btn');
+                    if (beFirstBtn) {
+                        beFirstBtn.addEventListener('click', () => {
+                            const container = document.getElementById('active-challenge');
+                            const tag = container?.dataset.tag;
+                            document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag } }));
+                        });
+                    }
+                } else {
+                    const displayed = participants.slice(0, 5);
+                    listEl.innerHTML = displayed.map(p => `
+                        <a href="${p.url}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer block">
+                            <img src="${p.avatarUrl}" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar de ${p.username}" />
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-white truncate">${p.username}</p>
+                                <p class="text-xs text-gray-500 truncate">Voir la solution</p>
+                            </div>
+                            <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
+                                <i class="fa-brands fa-github text-gray-400 group-hover:text-white"></i>
+                            </div>
+                        </a>
+                    `).join('') + `
+                        <div class="flex items-center gap-3 p-3 rounded-lg border border-white/5 opacity-30 blur-[1px] select-none">
+                            <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                            <div class="flex-1 min-w-0 space-y-2">
+                                <div class="h-4 bg-white/10 rounded w-24"></div>
+                                <div class="h-3 bg-white/5 rounded w-16"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // Update "See All" button
+            if (participants.length > 5 && seeAllBtn) {
+                seeAllBtn.classList.remove('hidden');
+                const countSpan = document.getElementById('see-all-count');
+                if (countSpan) countSpan.innerText = `(${participants.length})`;
+            }
+
+            // Update Modal List
+            const modalListEl = document.getElementById('modal-participants-list');
+            if (modalListEl) {
+                modalListEl.innerHTML = participants.map(p => `
+                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition">
+                        <img src="${p.avatarUrl}" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar de ${p.username}" />
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-white">${p.username}</p>
+                        </div>
+                        <a href="${p.url}" target="_blank" class="text-brand-purple hover:text-white text-sm font-medium">
+                            Voir <i class="fa-solid fa-external-link-alt ml-1 text-xs"></i>
+                        </a>
+                    </div>
+                `).join('');
+            }
+
+        } catch (error) {
+            console.error('Failed to load participants', error);
+            const listEl = document.getElementById('participants-list');
+            if (listEl) listEl.innerHTML = '<p class="text-red-400 text-xs text-center">Erreur de chargement</p>';
+        }
+    }
+
+    // Run init
+    initParticipants();
 </script>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+</style>
