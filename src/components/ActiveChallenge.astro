@@ -27,7 +27,7 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
 }).format(endDate);
 ---
 
-<div id="active-challenge" class="relative" data-tag={activeChallenge?.tag} data-end-date={endDate.toISOString()}>
+<div id="active-challenge" class="relative" data-tag={activeChallenge?.tag} data-title={activeChallenge?.title} data-end-date={endDate.toISOString()}>
     <!-- Glow background -->
     <div class="absolute -inset-1 bg-gradient-to-r from-brand-purple to-brand-pink rounded-2xl blur opacity-20"></div>
     
@@ -197,7 +197,8 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
         openBtn.addEventListener('click', () => {
             const container = document.getElementById('active-challenge');
             const tag = container?.dataset.tag;
-            document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag } }));
+            const title = container?.dataset.title;
+            document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag, title } }));
         });
     }
 
@@ -257,7 +258,8 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
                         beFirstBtn.addEventListener('click', () => {
                             const container = document.getElementById('active-challenge');
                             const tag = container?.dataset.tag;
-                            document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag } }));
+                            const title = container?.dataset.title;
+                            document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag, title } }));
                         });
                     }
                 } else {

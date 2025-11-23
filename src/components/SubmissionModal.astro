@@ -63,16 +63,22 @@ const activeTag = activeChallenge ? activeChallenge.tag : 'WEEK-XX';
 <script define:vars={{ activeTag }}>
     const REPO_URL = "https://github.com/yoanbernabeu/DevChallenges"; 
     let currentTag = activeTag;
+    let currentTitle = '';
 
     function openSubmissionModal(e) {
         const modal = document.getElementById('submission-modal');
         const content = document.getElementById('modal-content');
         
         // Update Tag if provided
-        if (e && e.detail && e.detail.tag) {
-            currentTag = e.detail.tag;
-            const tagCode = document.getElementById('modal-tag');
-            if (tagCode) tagCode.innerText = `#${currentTag}`;
+        if (e && e.detail) {
+            if (e.detail.tag) {
+                currentTag = e.detail.tag;
+                const tagCode = document.getElementById('modal-tag');
+                if (tagCode) tagCode.innerText = `#${currentTag}`;
+            }
+            if (e.detail.title) {
+                currentTitle = e.detail.title;
+            }
         }
 
         if (modal && content) {
@@ -103,7 +109,7 @@ const activeTag = activeChallenge ? activeChallenge.tag : 'WEEK-XX';
 
     function goToGithubIssue() {
         // Pré-remplissage du titre et du body
-        const title = encodeURIComponent(`#${currentTag} - Mon Projet [Pseudo]`);
+        const title = encodeURIComponent(`#${currentTag} - ${currentTitle}`);
         const body = encodeURIComponent(
 `## 🔗 Liens
 - **Demo Live:** [Insérer lien ici]
