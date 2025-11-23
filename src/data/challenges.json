@@ -1,72 +1,522 @@
 [
     {
         "id": "week-47",
-        "slug": "saas-pricing-table",
-        "title": "SaaS Pricing Table Component",
-        "description": "Créez un composant de tarification interactif avec toggle mensuel/annuel et mise en avant de l'offre recommandée.",
-        "brief": "Votre mission est de construire un composant responsive. Le design doit s'adapter parfaitement au mobile. <br> <strong>Bonus :</strong> Ajoutez une animation fluide lors du changement de toggle (Mois/Année).",
-        "difficulty": "Medium",
+        "slug": "pixel-art-maker",
+        "title": "Atelier Pixel Art",
+        "description": "Une grille interactive pour dessiner pixel par pixel.",
+        "brief": "<br>Créez une grille de 16x16 div. Au clic, la case change de couleur.<br><strong>Stockage :</strong> Sauvegarder le dessin (tableau de couleurs) dans le <code>localStorage</code> pour qu'il reste là au rechargement de la page.",
         "startDate": "2025-11-23T00:00:00Z",
-        "tag": "WEEK-47"
+        "tag": "WEEK-47",
+        "difficulty": "Easy"
     },
     {
-        "id": "week-41",
-        "slug": "weather-app",
-        "title": "App Météo",
-        "description": "Consommer une API tierce pour afficher la météo locale.",
-        "brief": "Utilisez l'API OpenWeatherMap ou similaire.",
-        "difficulty": "Easy",
-        "startDate": "2025-11-10T00:00:00Z",
-        "tag": "WEEK-41"
+        "id": "week-48",
+        "slug": "generateur-cadeaux-ai",
+        "title": "Générateur d'idées cadeaux (IA)",
+        "description": "API simple pour trouver des idées cadeaux.",
+        "brief": "<br>Créez une route API simple qui reçoit des paramètres (âge, goûts) et interroge une IA (OpenAI/Mistral) pour renvoyer une liste JSON d'idées.",
+        "startDate": "2025-11-30T00:00:00Z",
+        "tag": "WEEK-48",
+        "difficulty": "Medium"
     },
     {
-        "id": "week-40",
-        "slug": "kanban-board",
-        "title": "Kanban Board",
-        "description": "Gestionnaire de tâches avec Drag & Drop natif HTML5.",
-        "brief": "Implémentez un tableau Kanban avec colonnes dynamiques.",
-        "difficulty": "Hard",
-        "startDate": "2025-11-03T00:00:00Z",
-        "tag": "WEEK-40"
+        "id": "week-49",
+        "slug": "calendrier-avent",
+        "title": "Calendrier de l'Avent",
+        "description": "Logique de dates côté client.",
+        "brief": "<br>Une grille de 24 cases. Utilisez <code>new Date()</code> en Javascript pour empêcher l'ouverture des cases des jours futurs (griser les cases).",
+        "startDate": "2025-12-07T00:00:00Z",
+        "tag": "WEEK-49",
+        "difficulty": "Easy"
     },
     {
-        "id": "week-39",
-        "slug": "startup-landing",
-        "title": "Startup Landing",
-        "description": "Intégration pixel-perfect d'une maquette Figma fournie.",
-        "brief": "Respectez scrupuleusement les espacements et la typographie.",
-        "difficulty": "Medium",
-        "startDate": "2025-10-27T00:00:00Z",
-        "tag": "WEEK-39"
+        "id": "week-50",
+        "slug": "compte-rebours-2026",
+        "title": "Compte à rebours 2026",
+        "description": "Manipulation du temps.",
+        "brief": "<br>Affichez un compteur Jours/Heures/Minutes/Secondes qui s'actualise chaque seconde vers le 1er Janvier minuit.",
+        "startDate": "2025-12-14T00:00:00Z",
+        "tag": "WEEK-50",
+        "difficulty": "Easy"
     },
     {
-        "id": "week-38",
-        "slug": "quiz-game",
-        "title": "Quiz Game",
-        "description": "Logique de score, timer et questions dynamiques.",
-        "brief": "Créez un quiz avec 10 questions aléatoires.",
-        "difficulty": "Medium",
-        "startDate": "2025-10-20T00:00:00Z",
-        "tag": "WEEK-38"
+        "id": "week-51",
+        "slug": "carte-voeux-ai",
+        "title": "API Rédacteur de Vœux (IA)",
+        "description": "Génération de texte via API.",
+        "brief": "<br>Un script qui reçoit un nom et un style (humour, sérieux) et retourne un texte de vœux généré par IA.",
+        "startDate": "2025-12-21T00:00:00Z",
+        "tag": "WEEK-51",
+        "difficulty": "Medium"
     },
     {
-        "id": "week-37",
-        "slug": "timer-pomodoro",
-        "title": "Timer Pomodoro",
-        "description": "Gestion du temps, notifications audio et cycles.",
-        "brief": "Implémentez la technique Pomodoro (25min travail / 5min pause).",
-        "difficulty": "Easy",
-        "startDate": "2025-10-13T00:00:00Z",
-        "tag": "WEEK-37"
+        "id": "week-52",
+        "slug": "mes-resolutions",
+        "title": "Liste de Résolutions",
+        "description": "Gestion de listes et persistance locale.",
+        "brief": "<br>Ajouter/Supprimer des items dans une liste.<br><strong>Stockage :</strong> Utiliser <code>localStorage</code> pour ne pas perdre ses bonnes résolutions le lendemain.",
+        "startDate": "2025-12-28T00:00:00Z",
+        "tag": "WEEK-52",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-01",
+        "slug": "time-capsule",
+        "title": "Capsule Temporelle",
+        "description": "Logique serveur et fichiers.",
+        "brief": "<br>Recevoir un message texte et une date. L'écrire dans un fichier JSON sur le serveur. Créer une route qui ne permet de lire ce fichier que si la date est passée.",
+        "startDate": "2026-01-04T00:00:00Z",
+        "tag": "WEEK-01",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-02",
+        "slug": "traducteur-argot-ai",
+        "title": "Traducteur Langage Jeune (IA)",
+        "description": "Wrapper d'API IA.",
+        "brief": "<br>Route API qui prend une phrase formelle et demande à l'IA de la réécrire en langage 'jeune' ou SMS.",
+        "startDate": "2026-01-11T00:00:00Z",
+        "tag": "WEEK-02",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-03",
+        "slug": "sound-box",
+        "title": "Boîte à Sons",
+        "description": "Interaction DOM et Audio.",
+        "brief": "<br>Une page avec des boutons. Au clic, jouer un son (balise <code>audio</code> HTML5). Gérer le clavier pour déclencher les sons avec les touches.",
+        "startDate": "2026-01-18T00:00:00Z",
+        "tag": "WEEK-03",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-04",
+        "slug": "pokedex-fetch",
+        "title": "Pokedex (API Externe)",
+        "description": "Apprendre 'Fetch' et l'asynchrone.",
+        "brief": "<br>Utiliser l'API publique 'PokeAPI'. Créer un champ de recherche. Au clic, récupérer l'image et le nom du Pokémon et l'afficher.",
+        "startDate": "2026-01-25T00:00:00Z",
+        "tag": "WEEK-04",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-05",
+        "slug": "detecteur-fake-news-ai",
+        "title": "Détecteur de Fake News (IA)",
+        "description": "Analyse de texte backend.",
+        "brief": "<br>Envoyer un titre d'article à l'IA. Elle doit répondre uniquement par un pourcentage de crédibilité (JSON).",
+        "startDate": "2026-02-01T00:00:00Z",
+        "tag": "WEEK-05",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-06",
+        "slug": "generateur-avatar",
+        "title": "Générateur d'Avatar",
+        "description": "Manipulation d'image serveur.",
+        "brief": "<br>Recevoir des initiales (ex: 'JD'). Générer une image carrée (bibliothèque type Sharp ou Canvas) avec une couleur de fond aléatoire et les lettres au centre.",
+        "startDate": "2026-02-08T00:00:00Z",
+        "tag": "WEEK-06",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-07",
+        "slug": "love-calculator",
+        "title": "Calculatrice Amour",
+        "description": "Algorithme et String manipulation.",
+        "brief": "<br>Deux champs input. Comparer les lettres communes des deux prénoms avec une boucle JS pour générer un score % arbitraire.",
+        "startDate": "2026-02-15T00:00:00Z",
+        "tag": "WEEK-07",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-08",
+        "slug": "poeme-ai",
+        "title": "Générateur de Poèmes (IA)",
+        "description": "Prompt Engineering simple.",
+        "brief": "<br>Créer un endpoint qui accepte un thème et renvoie un poème en rimes via l'IA.",
+        "startDate": "2026-02-22T00:00:00Z",
+        "tag": "WEEK-08",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-09",
+        "slug": "convertisseur-unites",
+        "title": "Convertisseur Universel",
+        "description": "Maths et mises à jour en temps réel.",
+        "brief": "<br>Convertir Celsius/Fahrenheit ou Km/Miles. Le calcul doit se faire automatiquement dès qu'on tape (événement <code>onInput</code>).",
+        "startDate": "2026-03-01T00:00:00Z",
+        "tag": "WEEK-09",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-10",
+        "slug": "markdown-editor",
+        "title": "Éditeur Markdown Live",
+        "description": "Regex et manipulation de chaînes.",
+        "brief": "<br>Un textarea à gauche. À droite, le texte s'affiche en gras/italique en remplaçant les symboles Markdown par du HTML.",
+        "startDate": "2026-03-08T00:00:00Z",
+        "tag": "WEEK-10",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-11",
+        "slug": "debut-histoire-ai",
+        "title": "L'incipit (IA)",
+        "description": "Génération créative.",
+        "brief": "<br>L'utilisateur envoie un genre (Horreur, SF). L'IA ne doit renvoyer que la TOUTE première phrase d'un roman potentiel.",
+        "startDate": "2026-03-15T00:00:00Z",
+        "tag": "WEEK-11",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-12",
+        "slug": "tracker-depenses-full",
+        "title": "Tracker de Dépenses (Complet)",
+        "description": "Premier vrai projet Fullstack.",
+        "brief": "<strong>Type : Fullstack.</strong><br><strong>Front :</strong> Formulaire d'ajout.<br><strong>Back :</strong> API CRUD qui sauvegarde les dépenses dans un fichier JSON ou une base SQLite simple.",
+        "startDate": "2026-03-22T00:00:00Z",
+        "tag": "WEEK-12",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-13",
+        "slug": "bouton-piege",
+        "title": "Le Bouton qui fuit",
+        "description": "Poisson d'avril (CSS/JS).",
+        "brief": "<br>Un bouton 'Cliquez-moi'. Quand la souris approche (événement <code>mouseover</code>), changez sa position <code>top</code> et <code>left</code> aléatoirement.",
+        "startDate": "2026-03-29T00:00:00Z",
+        "tag": "WEEK-13",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-14",
+        "slug": "interprete-reves-ai",
+        "title": "Interprète de Rêves (IA)",
+        "description": "API Backend.",
+        "brief": "<br>Endpoint qui reçoit un texte long (le rêve) et demande à l'IA une interprétation psychologique simple.",
+        "startDate": "2026-04-05T00:00:00Z",
+        "tag": "WEEK-14",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-15",
+        "slug": "meteo-dashboard",
+        "title": "Dashboard Météo",
+        "description": "Appel API externe.",
+        "brief": "<br>Utiliser l'API OpenWeatherMap (gratuite). Afficher la température actuelle et une icône (Soleil/Pluie) selon la ville choisie.",
+        "startDate": "2026-04-12T00:00:00Z",
+        "tag": "WEEK-15",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-16",
+        "slug": "memory-game",
+        "title": "Jeu de Memory",
+        "description": "Logique de jeu.",
+        "brief": "<br>Grille de cartes cachées. Gérer l'état : si 2 cartes retournées sont identiques, elles restent affichées. Sinon, elles se retournent.",
+        "startDate": "2026-04-19T00:00:00Z",
+        "tag": "WEEK-16",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-17",
+        "slug": "palette-ai",
+        "title": "Générateur de Couleurs (IA)",
+        "description": "Retourner du format structuré.",
+        "brief": "<br>Donner un mot clé à l'IA, elle doit renvoyer un tableau JSON de 5 codes hexadécimaux (ex: ['#FF0000', ...]).",
+        "startDate": "2026-04-26T00:00:00Z",
+        "tag": "WEEK-17",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-18",
+        "slug": "pomodoro-timer",
+        "title": "Minuteur Pomodoro",
+        "description": "Intervalles JS.",
+        "brief": "<br>Un timer de 25 minutes. Boutons Start, Pause, Reset. Jouer une petite alarme à la fin.",
+        "startDate": "2026-05-03T00:00:00Z",
+        "tag": "WEEK-18",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-19",
+        "slug": "url-shortener",
+        "title": "Raccourcisseur d'URL",
+        "description": "Routing et Redirection.",
+        "brief": "<br>Stocker des paires (id court, url longue). Quand l'utilisateur accède à <code>/id</code>, le serveur doit faire une redirection HTTP (301) vers l'url longue.",
+        "startDate": "2026-05-10T00:00:00Z",
+        "tag": "WEEK-19",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-20",
+        "slug": "expliquateur-code-ai",
+        "title": "Explique ce code (IA)",
+        "description": "Outil pour dev.",
+        "brief": "<br>Recevoir un snippet de code. L'envoyer à l'IA avec la consigne 'Explique ça à un enfant de 5 ans'. Renvoyer l'explication.",
+        "startDate": "2026-05-17T00:00:00Z",
+        "tag": "WEEK-20",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-21",
+        "slug": "flashcards",
+        "title": "Fiches de Révision",
+        "description": "Interactive UI.",
+        "brief": "<br>Afficher une question. Au clic, la carte se retourne (effet CSS transition) pour montrer la réponse.<br><strong>Stockage :</strong> JSON en dur dans le code JS.",
+        "startDate": "2026-05-24T00:00:00Z",
+        "tag": "WEEK-21",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-22",
+        "slug": "dad-jokes",
+        "title": "Blagues de Papa",
+        "description": "Consommation d'API.",
+        "brief": "<br>Appeler l'API gratuite 'icanhazdadjoke'. Afficher une nouvelle blague à chaque clic sur un bouton.",
+        "startDate": "2026-05-31T00:00:00Z",
+        "tag": "WEEK-22",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-23",
+        "slug": "cine-conseil-ai",
+        "title": "Ciné Club IA",
+        "description": "Suggestion.",
+        "brief": "<br>API qui reçoit une liste de 3 films aimés et demande à l'IA d'en recommander un 4ème similaire.",
+        "startDate": "2026-06-07T00:00:00Z",
+        "tag": "WEEK-23",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-24",
+        "slug": "shopping-list-sync",
+        "title": "Liste de Courses Partagée",
+        "description": "Fullstack avec BDD.",
+        "brief": "<strong>Type : Fullstack.</strong><br>Le but est que si j'ajoute 'Lait' sur mon ordi, ça apparaît si j'ouvre la page sur mon téléphone (nécessite une vraie BDD côté Back).",
+        "startDate": "2026-06-14T00:00:00Z",
+        "tag": "WEEK-24",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-25",
+        "slug": "water-tracker",
+        "title": "Hydratation Tracker",
+        "description": "Visualisation de données simple.",
+        "brief": "<br>Une jauge bleue qui monte quand on clique sur 'Boire un verre'.<br><strong>Stockage :</strong> <code>localStorage</code> pour garder le niveau de la journée.",
+        "startDate": "2026-06-21T00:00:00Z",
+        "tag": "WEEK-25",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-26",
+        "slug": "voyage-planner-ai",
+        "title": "Planner de Week-end (IA)",
+        "description": "Génération structurée.",
+        "brief": "<br>Endpoint qui génère un planning JSON (Matin/Midi/Soir) pour une ville donnée via IA.",
+        "startDate": "2026-06-28T00:00:00Z",
+        "tag": "WEEK-26",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-27",
+        "slug": "currency-converter",
+        "title": "Convertisseur Devises",
+        "description": "API Taux de change.",
+        "brief": "<br>Utiliser une API de taux de change (ex: FrankerFixer). Convertir un montant d'EUR vers USD.",
+        "startDate": "2026-07-05T00:00:00Z",
+        "tag": "WEEK-27",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-28",
+        "slug": "sondage-api",
+        "title": "API de Sondage",
+        "description": "Logique de votes.",
+        "brief": "<br>Une API avec 2 routes : POST /vote (incrémente un compteur) et GET /results (renvoie les compteurs). Stockage en fichier JSON.",
+        "startDate": "2026-07-12T00:00:00Z",
+        "tag": "WEEK-28",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-29",
+        "slug": "image-caption-ai",
+        "title": "Légende Photo (IA)",
+        "description": "Vision IA.",
+        "brief": "<br>Recevoir une URL d'image, l'envoyer à une IA multimodale (GPT-4 Vision ou autre) et renvoyer la description textuelle.",
+        "startDate": "2026-07-19T00:00:00Z",
+        "tag": "WEEK-29",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-30",
+        "slug": "dice-roller",
+        "title": "Lanceur de Dés",
+        "description": "Nombres aléatoires.",
+        "brief": "<br>Afficher un cube ou une image de dé. Au clic, générer un chiffre 1-6 et changer l'image correspondante.",
+        "startDate": "2026-07-26T00:00:00Z",
+        "tag": "WEEK-30",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-31",
+        "slug": "recipe-box",
+        "title": "Boîte à Recettes",
+        "description": "CRUD Local.",
+        "brief": "<br>Formulaire pour ajouter Titre + Ingrédients. Affichage en cartes.<br><strong>Stockage :</strong> <code>localStorage</code>.",
+        "startDate": "2026-08-02T00:00:00Z",
+        "tag": "WEEK-31",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-32",
+        "slug": "code-fix-ai",
+        "title": "Debuggeur (IA)",
+        "description": "Correction de texte.",
+        "brief": "<br>Envoyer un code avec une erreur. L'IA doit renvoyer le code corrigé.",
+        "startDate": "2026-08-09T00:00:00Z",
+        "tag": "WEEK-32",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-33",
+        "slug": "typing-speed",
+        "title": "Vitesse de Frappe",
+        "description": "Événements clavier.",
+        "brief": "<br>Afficher une phrase. L'utilisateur doit la taper. Calculer le temps mis pour finir et afficher les mots par minute (WPM).",
+        "startDate": "2026-08-16T00:00:00Z",
+        "tag": "WEEK-33",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-34",
+        "slug": "contacts-api",
+        "title": "API Contacts",
+        "description": "CRUD Backend pur.",
+        "brief": "<br>Créer une API REST complète pour gérer un carnet d'adresse (GET, POST, PUT, DELETE). Tester avec Postman (pas de frontend).",
+        "startDate": "2026-08-23T00:00:00Z",
+        "tag": "WEEK-34",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-35",
+        "slug": "career-coach-ai",
+        "title": "Conseiller Orientation (IA)",
+        "description": "Matching.",
+        "brief": "<br>Recevoir une liste de skills. L'IA renvoie 3 métiers tech correspondants.",
+        "startDate": "2026-08-30T00:00:00Z",
+        "tag": "WEEK-35",
+        "difficulty": "Medium"
     },
     {
         "id": "week-36",
-        "slug": "markdown-previewer",
-        "title": "Markdown Previewer",
-        "description": "Preview en temps réel de syntaxe Markdown.",
-        "brief": "Utilisez une librairie comme marked.js ou faites-le à la main.",
-        "difficulty": "Hard",
-        "startDate": "2025-10-06T00:00:00Z",
-        "tag": "WEEK-36"
+        "slug": "blog-engine",
+        "title": "Moteur de Blog",
+        "description": "Fullstack classique.",
+        "brief": "<strong>Type : Fullstack.</strong><br>Une page admin (protégée par un mot de passe en dur) pour écrire des articles. Une page publique pour les lire.",
+        "startDate": "2026-09-06T00:00:00Z",
+        "tag": "WEEK-36",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-37",
+        "slug": "habit-grid",
+        "title": "Grille d'habitudes",
+        "description": "UI style Github.",
+        "brief": "<br>Une grille de 30 cases. Au clic, la case se colore. Compter le nombre de jours consécutifs.<br><strong>Stockage :</strong> <code>localStorage</code>.",
+        "startDate": "2026-09-13T00:00:00Z",
+        "tag": "WEEK-37",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-38",
+        "slug": "mood-quote-ai",
+        "title": "Citation par Humeur (IA)",
+        "description": "API simple.",
+        "brief": "<br>L'utilisateur envoie son 'Mood'. L'IA renvoie une citation célèbre adaptée.",
+        "startDate": "2026-09-20T00:00:00Z",
+        "tag": "WEEK-38",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-39",
+        "slug": "retro-calc",
+        "title": "Calculatrice Rétro",
+        "description": "Design & Logique JS.",
+        "brief": "<br>Recréer une calculatrice fonctionnelle. Le challenge est ici le design (CSS Neumorphism ou Pixel Art) et la gestion des opérateurs.",
+        "startDate": "2026-09-27T00:00:00Z",
+        "tag": "WEEK-39",
+        "difficulty": "Easy"
+    },
+    {
+        "id": "week-40",
+        "slug": "movie-search",
+        "title": "Recherche Films",
+        "description": "Appel API avec paramètres.",
+        "brief": "<br>Barre de recherche connectée à l'API TMDB (TheMovieDB). Afficher les posters des films trouvés.",
+        "startDate": "2026-10-04T00:00:00Z",
+        "tag": "WEEK-40",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-41",
+        "slug": "horror-story-ai",
+        "title": "Histoire Halloween (IA)",
+        "description": "Thématique saisonnière.",
+        "brief": "<br>Générateur d'histoire qui fait peur. Paramètres : Nom du héros, Lieu.",
+        "startDate": "2026-10-11T00:00:00Z",
+        "tag": "WEEK-41",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-42",
+        "slug": "file-transfer",
+        "title": "Transfert de Fichier",
+        "description": "Upload Multer/Formdata.",
+        "brief": "<br>Créer un formulaire HTML simple (ou utiliser Postman) pour uploader un fichier. Le serveur le sauvegarde dans un dossier 'uploads'.",
+        "startDate": "2026-10-18T00:00:00Z",
+        "tag": "WEEK-42",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-43",
+        "slug": "qr-generator",
+        "title": "Générateur QR Code",
+        "description": "Utilisation de librairie JS.",
+        "brief": "<br>Champ texte. Utiliser une librairie JS (ex: qrcode.js) pour générer le QR code en temps réel dans un canvas.",
+        "startDate": "2026-10-25T00:00:00Z",
+        "tag": "WEEK-43",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-44",
+        "slug": "resume-polish-ai",
+        "title": "Embellisseur de CV (IA)",
+        "description": "Reformulation.",
+        "brief": "<br>Envoyer une phrase 'brouillon'. L'IA la retourne en langage 'corporate' pour un CV.",
+        "startDate": "2026-11-01T00:00:00Z",
+        "tag": "WEEK-44",
+        "difficulty": "Hard"
+    },
+    {
+        "id": "week-45",
+        "slug": "shopping-cart-logic",
+        "title": "Logique Panier",
+        "description": "Calculs de tableaux.",
+        "brief": "<br>Un fichier JSON contient des produits. Au clic 'Ajouter', remplir un tableau 'Panier'. Calculer le total en direct (reduce JS).",
+        "startDate": "2026-11-08T00:00:00Z",
+        "tag": "WEEK-45",
+        "difficulty": "Medium"
+    },
+    {
+        "id": "week-46",
+        "slug": "portfolio-static",
+        "title": "Portfolio Statique",
+        "description": "HTML/CSS pur.",
+        "brief": "<br>Créer une page vitrine simple présentant les meilleurs projets réalisés durant l'année. Juste du HTML/CSS propre, pas de JS.",
+        "startDate": "2026-11-15T00:00:00Z",
+        "tag": "WEEK-46",
+        "difficulty": "Easy"
     }
 ]
