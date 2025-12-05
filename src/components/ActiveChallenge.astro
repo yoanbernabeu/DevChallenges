@@ -1,5 +1,6 @@
 ---
 import challenges from '../data/challenges.json';
+import SubmitCTA from './SubmitCTA.astro';
 
 // Pass all challenges to the client - the active one will be determined client-side
 const challengesData = JSON.stringify(challenges);
@@ -78,20 +79,7 @@ const challengesData = JSON.stringify(challenges);
                 </a>
 
                 <!-- Main CTA -->
-                <div class="bg-brand-surface/50 rounded-xl p-6 border border-dashed border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div>
-                        <div class="flex items-center gap-3 mb-1">
-                            <h4 class="text-white font-bold text-sm">Prêt à coder ?</h4>
-                            <span class="text-[10px] text-gray-500">C'est <strong class="text-gray-400">gratuit</strong> et <strong class="text-gray-400">sans inscription</strong> !</span>
-                        </div>
-                        <p class="text-xs text-gray-500">Soumettez votre repo via Pull Request.</p>
-                    </div>
-                    <!-- Bouton modifié pour ouvrir la modale -->
-                    <button id="open-modal-btn" class="w-full sm:w-auto px-6 py-2.5 bg-brand-purple hover:bg-brand-purple/90 text-white rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm shadow-[0_0_15px_rgba(124,58,237,0.4)]">
-                        <i class="fa-brands fa-github"></i>
-                        Proposer ma solution
-                    </button>
-                </div>
+                <SubmitCTA />
             </div>
 
             <!-- Right: Latest Submissions (List) -->
@@ -278,7 +266,7 @@ const challengesData = JSON.stringify(challenges);
     }
 
     // Modal Logic
-    const openBtn = document.getElementById('open-modal-btn');
+    const openBtn = document.querySelector('#active-challenge .submit-cta-btn');
     if (openBtn) {
         openBtn.addEventListener('click', () => {
             document.dispatchEvent(new CustomEvent('open-submission-modal', { 

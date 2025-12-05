@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
 import SubmissionModal from '../../components/SubmissionModal.astro';
+import SubmitCTA from '../../components/SubmitCTA.astro';
 import challenges from '../../data/challenges.json';
 
 export function getStaticPaths() {
@@ -197,16 +198,7 @@ const challengeData = JSON.stringify({
 
                     <!-- CTA for active challenge -->
                     {status === 'active' && (
-                        <div class="mt-8 bg-brand-surface/50 rounded-xl p-6 border border-dashed border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div>
-                                <h4 class="text-white font-bold text-sm">Prêt à coder ?</h4>
-                                <p class="text-xs text-gray-500">Soumettez votre repo via Pull Request.</p>
-                            </div>
-                            <button id="open-modal-btn" class="w-full sm:w-auto px-6 py-2.5 bg-brand-purple hover:bg-brand-purple/90 text-white rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm shadow-[0_0_15px_rgba(124,58,237,0.4)]">
-                                <i class="fa-brands fa-github"></i>
-                                Proposer ma solution
-                            </button>
-                        </div>
+                        <SubmitCTA class="mt-8" />
                     )}
                 </div>
             </div>
@@ -383,7 +375,7 @@ const challengeData = JSON.stringify({
         }
 
         // Modal for submission
-        const openBtn = document.getElementById('open-modal-btn');
+        const openBtn = document.querySelector('.submit-cta-btn');
         if (openBtn) {
             openBtn.addEventListener('click', () => {
                 document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag, title } }));
