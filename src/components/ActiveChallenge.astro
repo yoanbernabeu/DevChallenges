@@ -1,33 +1,11 @@
 ---
 import challenges from '../data/challenges.json';
 
-const now = new Date();
-const activeChallenge = challenges.map(c => {
-    const start = new Date(c.startDate.replace('Z', ''));
-    const end = new Date(start);
-    end.setDate(end.getDate() + 6); // Sunday to Saturday
-    end.setHours(23, 59, 59, 999);
-    return { ...c, startObj: start, endObj: end };
-}).find(c => now >= c.startObj && now <= c.endObj);
-
-// Fallback if no active challenge found (optional: show next upcoming or a default)
-// For now, if no active challenge, we might want to show the next one as "Starting soon" or just the last one?
-// The user request implies "active" is what's running.
-// If activeChallenge is undefined, the UI might break if we don't handle it.
-// Let's assume for this step we just find the active one.
-
-// Format date for display (e.g., "Dimanche 30 Nov. 23h59")
-const endDate = activeChallenge ? activeChallenge.endObj : new Date();
-const formattedDate = new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-    hour: 'numeric',
-    minute: 'numeric'
-}).format(endDate);
+// Pass all challenges to the client - the active one will be determined client-side
+const challengesData = JSON.stringify(challenges);
 ---
 
-<div id="active-challenge" class="relative" data-tag={activeChallenge?.tag} data-title={activeChallenge?.title} data-end-date={endDate.toISOString()}>
+<div id="active-challenge" class="relative" data-challenges={challengesData}>
     <!-- Glow background -->
     <div class="absolute -inset-1 bg-gradient-to-r from-brand-purple to-brand-pink rounded-2xl blur opacity-20"></div>
     
@@ -37,11 +15,16 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
             <div>
                 <div class="flex items-center gap-3 mb-2">
                     <span class="bg-red-500/10 text-red-400 border border-red-500/20 text-xs px-2 py-0.5 rounded uppercase tracking-wider font-bold animate-pulse">Live</span>
-                    <span class="text-gray-500 text-sm font-mono">#{activeChallenge?.tag}</span>
+                    <span id="challenge-tag" class="text-gray-500 text-sm font-mono">Chargement...</span>
                 </div>
-                <h2 class="text-3xl font-bold text-white mb-2">{activeChallenge?.title}</h2>
-                <p class="text-gray-400 max-w-xl">
-                    {activeChallenge?.description}
+                <a id="challenge-link" href="#" class="group">
+                    <h2 id="challenge-title" class="text-3xl font-bold text-white mb-2 group-hover:text-brand-purple transition inline-flex items-center gap-2">
+                        Chargement...
+                        <i class="fa-solid fa-arrow-right text-lg opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>
+                    </h2>
+                </a>
+                <p id="challenge-description" class="text-gray-400 max-w-xl">
+                    Chargement du défi de la semaine...
                 </p>
             </div>
             
@@ -49,13 +32,13 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
             <div class="bg-brand-surface rounded-lg p-4 border border-white/5 min-w-[200px] text-center mx-auto lg:mx-0">
                 <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Temps restant</p>
                 <div id="timer-val" class="text-2xl font-mono font-bold text-white">--j --h --m</div>
-                <p class="text-xs text-brand-purple mt-1 font-medium capitalize">Fin: {formattedDate}</p>
+                <p id="end-date-display" class="text-xs text-brand-purple mt-1 font-medium capitalize">Fin: --</p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3">
+        <div class="grid grid-cols-1 lg:grid-cols-3 items-start">
             <!-- Left: Details & CTA -->
-            <div class="lg:col-span-2 p-8 border-r border-white/5 space-y-8">
+            <div class="lg:col-span-2 p-8 lg:border-r border-white/5 space-y-6">
                 
                 <!-- Stats Row -->
                 <div class="flex items-center gap-8">
@@ -69,20 +52,38 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-white">Niveau</p>
-                        <p class="text-sm text-brand-pink font-medium">{activeChallenge?.difficulty}</p>
+                        <p id="challenge-difficulty" class="text-sm text-brand-pink font-medium">--</p>
                     </div>
                 </div>
 
                 <!-- Brief -->
                 <div class="prose prose-invert prose-sm max-w-none text-gray-400">
                     <h4 class="text-white font-heading">Le Brief</h4>
-                    <p set:html={activeChallenge?.brief}></p>
+                    <p id="challenge-brief">Chargement...</p>
                 </div>
+
+                <!-- Specs Link (hidden by default, shown via JS if specsUrl exists) -->
+                <a 
+                    id="specs-link"
+                    href="#"
+                    target="_blank"
+                    class="hidden items-center gap-3 px-5 py-3 rounded-lg bg-linear-to-r from-brand-purple/20 to-brand-pink/20 border border-brand-purple/30 hover:border-brand-purple/50 transition group"
+                >
+                    <i class="fa-solid fa-book text-brand-purple"></i>
+                    <div>
+                        <p class="text-white font-medium text-sm">📖 Spécifications complètes</p>
+                        <p class="text-gray-400 text-xs">Consultez le repo avec toutes les specs détaillées</p>
+                    </div>
+                    <i class="fa-solid fa-external-link-alt text-gray-500 group-hover:text-brand-purple transition ml-auto"></i>
+                </a>
 
                 <!-- Main CTA -->
                 <div class="bg-brand-surface/50 rounded-xl p-6 border border-dashed border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div>
-                        <h4 class="text-white font-bold text-sm">Prêt à coder ?</h4>
+                        <div class="flex items-center gap-3 mb-1">
+                            <h4 class="text-white font-bold text-sm">Prêt à coder ?</h4>
+                            <span class="text-[10px] text-gray-500">C'est <strong class="text-gray-400">gratuit</strong> et <strong class="text-gray-400">sans inscription</strong> !</span>
+                        </div>
                         <p class="text-xs text-gray-500">Soumettez votre repo via Pull Request.</p>
                     </div>
                     <!-- Bouton modifié pour ouvrir la modale -->
@@ -160,14 +161,102 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
 <script>
     import { getParticipants } from '../utils/github';
 
+    // Store for current challenge data
+    let currentChallenge: { id?: string; tag?: string; title?: string; endDate?: Date } = {};
+
+    // Get active challenge from data - runs on every page load (client-side)
+    function getActiveChallenge() {
+        const container = document.getElementById('active-challenge');
+        if (!container) return null;
+
+        const challengesData = container.dataset.challenges;
+        if (!challengesData) return null;
+
+        try {
+            const challenges = JSON.parse(challengesData);
+            const now = new Date();
+
+            const activeChallenge = challenges.map((c: any) => {
+                const start = new Date(c.startDate.replace('Z', ''));
+                const end = new Date(start);
+                end.setDate(end.getDate() + 6); // Sunday to Saturday
+                end.setHours(23, 59, 59, 999);
+                return { ...c, startObj: start, endObj: end };
+            }).find((c: any) => now >= c.startObj && now <= c.endObj);
+
+            return activeChallenge || null;
+        } catch (e) {
+            console.error('Failed to parse challenges', e);
+            return null;
+        }
+    }
+
+    // Update DOM with active challenge data
+    function updateChallengeUI() {
+        const activeChallenge = getActiveChallenge();
+
+        if (!activeChallenge) {
+            // No active challenge found
+            document.getElementById('challenge-tag')!.textContent = '#--';
+            document.getElementById('challenge-title')!.textContent = 'Aucun défi actif';
+            document.getElementById('challenge-description')!.textContent = 'Revenez bientôt pour le prochain défi !';
+            document.getElementById('challenge-difficulty')!.textContent = '--';
+            document.getElementById('challenge-brief')!.innerHTML = 'Aucun défi en cours cette semaine.';
+            return;
+        }
+
+        // Store for later use
+        currentChallenge = {
+            id: activeChallenge.id,
+            tag: activeChallenge.tag,
+            title: activeChallenge.title,
+            endDate: activeChallenge.endObj
+        };
+
+        // Update DOM elements
+        document.getElementById('challenge-tag')!.textContent = `#${activeChallenge.tag}`;
+        const titleEl = document.getElementById('challenge-title')!;
+        titleEl.innerHTML = `${activeChallenge.title} <i class="fa-solid fa-arrow-right text-lg opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>`;
+        document.getElementById('challenge-description')!.textContent = activeChallenge.description;
+        document.getElementById('challenge-difficulty')!.textContent = activeChallenge.difficulty;
+        document.getElementById('challenge-brief')!.innerHTML = activeChallenge.brief;
+
+        // Update the link to challenge page
+        const challengeLink = document.getElementById('challenge-link') as HTMLAnchorElement;
+        if (challengeLink) {
+            challengeLink.href = `/challenge/${activeChallenge.id}`;
+        }
+
+        // Show specs link if available
+        const specsLink = document.getElementById('specs-link') as HTMLAnchorElement;
+        if (specsLink && activeChallenge.specsUrl) {
+            specsLink.href = activeChallenge.specsUrl;
+            specsLink.classList.remove('hidden');
+            specsLink.classList.add('inline-flex');
+        }
+
+        // Format end date for display
+        const formattedDate = new Intl.DateTimeFormat('fr-FR', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'short',
+            hour: 'numeric',
+            minute: 'numeric'
+        }).format(activeChallenge.endObj);
+        document.getElementById('end-date-display')!.textContent = `Fin: ${formattedDate}`;
+
+        // Start countdown
+        updateCountdown();
+
+        // Load participants
+        initParticipants();
+    }
+
     // Timer Logic
     function updateCountdown() {
-        const container = document.getElementById('active-challenge');
-        const endDateStr = container?.dataset.endDate;
-        
-        if (!endDateStr) return;
+        if (!currentChallenge.endDate) return;
 
-        const deadline = new Date(endDateStr);
+        const deadline = currentChallenge.endDate;
         const now = new Date().getTime();
         const distance = deadline.getTime() - now;
 
@@ -188,17 +277,16 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
         }
     }
 
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-
     // Modal Logic
     const openBtn = document.getElementById('open-modal-btn');
     if (openBtn) {
         openBtn.addEventListener('click', () => {
-            const container = document.getElementById('active-challenge');
-            const tag = container?.dataset.tag;
-            const title = container?.dataset.title;
-            document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag, title } }));
+            document.dispatchEvent(new CustomEvent('open-submission-modal', { 
+                detail: { 
+                    tag: currentChallenge.tag, 
+                    title: currentChallenge.title 
+                } 
+            }));
         });
     }
 
@@ -229,8 +317,7 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
 
     // Fetch Participants Logic
     async function initParticipants() {
-        const container = document.getElementById('active-challenge');
-        const tag = container?.dataset.tag;
+        const tag = currentChallenge.tag;
         
         if (!tag) return;
 
@@ -256,14 +343,26 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
                     const beFirstBtn = document.getElementById('be-first-btn');
                     if (beFirstBtn) {
                         beFirstBtn.addEventListener('click', () => {
-                            const container = document.getElementById('active-challenge');
-                            const tag = container?.dataset.tag;
-                            const title = container?.dataset.title;
-                            document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag, title } }));
+                            document.dispatchEvent(new CustomEvent('open-submission-modal', { 
+                                detail: { 
+                                    tag: currentChallenge.tag, 
+                                    title: currentChallenge.title 
+                                } 
+                            }));
                         });
                     }
                 } else {
                     const displayed = participants.slice(0, 5);
+                    const placeholderCard = displayed.length < 5 ? `
+                        <div class="flex items-center gap-3 p-3 rounded-lg border border-white/5 opacity-30 blur-[1px] select-none">
+                            <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                            <div class="flex-1 min-w-0 space-y-2">
+                                <div class="h-4 bg-white/10 rounded w-24"></div>
+                                <div class="h-3 bg-white/5 rounded w-16"></div>
+                            </div>
+                        </div>
+                    ` : '';
+                    
                     listEl.innerHTML = displayed.map(p => `
                         <a href="${p.url}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer block">
                             <img src="${p.avatarUrl}" loading="lazy" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar de ${p.username}" />
@@ -275,15 +374,7 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
                                 <i class="fa-brands fa-github text-gray-400 group-hover:text-white"></i>
                             </div>
                         </a>
-                    `).join('') + `
-                        <div class="flex items-center gap-3 p-3 rounded-lg border border-white/5 opacity-30 blur-[1px] select-none">
-                            <div class="w-10 h-10 rounded-full bg-white/10"></div>
-                            <div class="flex-1 min-w-0 space-y-2">
-                                <div class="h-4 bg-white/10 rounded w-24"></div>
-                                <div class="h-3 bg-white/5 rounded w-16"></div>
-                            </div>
-                        </div>
-                    `;
+                    `).join('') + placeholderCard;
                 }
             }
 
@@ -317,8 +408,11 @@ const formattedDate = new Intl.DateTimeFormat('fr-FR', {
         }
     }
 
-    // Run init
-    initParticipants();
+    // Initialize on page load
+    updateChallengeUI();
+    
+    // Start countdown interval
+    setInterval(updateCountdown, 1000);
 </script>
 
 <style>

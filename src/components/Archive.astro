@@ -39,7 +39,8 @@ const gradients = [
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="archive-grid">
         {archivedChallenges.map((challenge, index) => (
-            <div 
+            <a 
+                href={`/challenge/${challenge.id}`}
                 class="project-card block glass-panel rounded-xl overflow-hidden group cursor-pointer hover:border-brand-purple/50 transition duration-300"
                 data-challenge={JSON.stringify(challenge)}
                 data-difficulty={challenge.difficulty}
@@ -61,12 +62,14 @@ const gradients = [
                         }`}>{challenge.difficulty}</span>
                     </div>
                     <p class="text-sm text-gray-400 mb-4 line-clamp-2">{challenge.description}</p>
-                    <div class="flex items-center text-xs text-gray-500 gap-4">
+                    <div class="flex items-center justify-between text-xs text-gray-500">
                         <span><i class="fa-regular fa-calendar mr-1"></i> {challenge.tag}</span>
-                        <!-- Removed participant count -->
+                        <span class="text-brand-purple group-hover:text-white transition flex items-center gap-1">
+                            Voir <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </span>
                     </div>
                 </div>
-            </div>
+            </a>
         ))}
 
         <!-- Blurred Cards for Future History -->
@@ -85,76 +88,9 @@ const gradients = [
         ))}
     </div>
 
-    <!-- Loader infinite scroll (Hidden if no more to load, but keeping for UI consistency if needed, or remove) -->
-    <!-- <div class="pt-8 flex justify-center">
-        <button class="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400 hover:text-white hover:bg-white/10 transition flex items-center gap-2">
-            <span class="relative flex h-3 w-3">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-purple opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-3 w-3 bg-brand-purple"></span>
-            </span>
-            Charger plus de projets...
-        </button>
-    </div> -->
-</div>
-
-<!-- Archive Details Modal -->
-<div id="archive-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
-    <div class="absolute inset-0 bg-[#0B0A16]/90 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
-    <div class="fixed inset-0 flex items-center justify-center p-4">
-        <div class="bg-[#1E1C2E] border border-white/10 w-full max-w-2xl rounded-2xl p-0 shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden">
-            
-            <!-- Header -->
-            <div class="p-6 border-b border-white/5 flex justify-between items-start bg-white/5">
-                <div>
-                    <div class="flex items-center gap-3 mb-2">
-                        <span id="modal-tag" class="text-gray-500 text-xs font-mono border border-white/10 px-2 py-0.5 rounded"></span>
-                        <span id="modal-difficulty" class="text-xs px-2 py-0.5 rounded border"></span>
-                    </div>
-                    <h3 id="modal-title" class="text-2xl font-bold text-white"></h3>
-                </div>
-                <button id="close-archive-modal-btn" class="text-gray-400 hover:text-white transition p-2 hover:bg-white/10 rounded-lg">
-                    <i class="fa-solid fa-times text-xl"></i>
-                </button>
-            </div>
-
-            <div class="overflow-y-auto p-6 custom-scrollbar">
-                <!-- Description -->
-                <div class="mb-8">
-                    <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-2">Description</h4>
-                    <p id="modal-description" class="text-gray-400 leading-relaxed"></p>
-                </div>
-
-                <div class="mb-8">
-                    <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-2">Brief</h4>
-                    <p id="modal-brief" class="text-gray-400 leading-relaxed text-sm"></p>
-                </div>
-
-                <!-- Participants Section -->
-                <div>
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Solutions proposées</h4>
-                        <span id="modal-participant-count" class="text-xs text-brand-purple font-mono"></span>
-                    </div>
-                    
-                    <div id="modal-participants-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <!-- Populated via JS -->
-                    </div>
-                    
-                    <!-- Loading State -->
-                    <div id="modal-loading" class="hidden py-8 flex justify-center">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-purple"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
-    import { getParticipants } from '../utils/github';
-
-    const modal = document.getElementById('archive-modal');
-    const closeBtn = document.getElementById('close-archive-modal-btn');
     const cards = document.querySelectorAll('.project-card[data-challenge]');
     const filterBtns = document.querySelectorAll('.filter-btn');
     const placeholders = document.querySelectorAll('.placeholder-card');
@@ -192,108 +128,5 @@ const gradients = [
             });
         });
     });
-
-    function openModal(challenge) {
-        if (!modal) return;
-
-        // Populate Static Data
-        document.getElementById('modal-title').innerText = challenge.title;
-        document.getElementById('modal-description').innerText = challenge.description;
-        document.getElementById('modal-brief').innerHTML = challenge.brief;
-        document.getElementById('modal-tag').innerText = `#${challenge.tag}`;
-        
-        const diffEl = document.getElementById('modal-difficulty');
-        diffEl.innerText = challenge.difficulty;
-        diffEl.className = `text-xs px-2 py-0.5 rounded border ${
-            challenge.difficulty === 'Easy' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-            challenge.difficulty === 'Medium' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-            'bg-orange-500/10 text-orange-400 border-orange-500/20'
-        }`;
-
-        // Reset Participants
-        const grid = document.getElementById('modal-participants-grid');
-        const loading = document.getElementById('modal-loading');
-        const count = document.getElementById('modal-participant-count');
-        
-        grid.innerHTML = '';
-        count.innerText = '';
-        loading.classList.remove('hidden');
-        modal.classList.remove('hidden');
-
-        // Fetch Participants
-        fetchParticipants(challenge.tag);
-    }
-
-    async function fetchParticipants(tag) {
-        const grid = document.getElementById('modal-participants-grid');
-        const loading = document.getElementById('modal-loading');
-        const count = document.getElementById('modal-participant-count');
-
-        try {
-            const participants = await getParticipants(tag);
-            loading.classList.add('hidden');
-            count.innerText = `${participants.length} participants`;
-
-            if (participants.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-4 text-gray-500 text-sm">
-                        Aucune solution pour ce challenge.
-                    </div>
-                `;
-            } else {
-                grid.innerHTML = participants.map(p => `
-                    <a href="${p.url}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/5 hover:border-brand-purple/30 group">
-                        <img src="${p.avatarUrl}" loading="lazy" class="w-8 h-8 rounded-full border border-white/10" alt="${p.username}" />
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-white truncate group-hover:text-brand-purple transition">${p.username}</p>
-                        </div>
-                        <i class="fa-brands fa-github text-gray-500 group-hover:text-white transition"></i>
-                    </a>
-                `).join('');
-            }
-        } catch (error) {
-            console.error(error);
-            loading.classList.add('hidden');
-            grid.innerHTML = `<div class="col-span-full text-center text-red-400 text-sm">Erreur de chargement</div>`;
-        }
-    }
-
-    // Event Listeners
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
-            const challenge = JSON.parse(card.dataset.challenge);
-            openModal(challenge);
-        });
-    });
-
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.classList.add('hidden');
-        });
-    }
-
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.add('hidden');
-            }
-        });
-    }
 </script>
 
-<style>
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.2);
-    }
-</style>
