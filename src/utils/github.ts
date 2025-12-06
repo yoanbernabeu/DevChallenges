@@ -19,7 +19,52 @@ export interface IssueComment {
 const REPO_OWNER = 'yoanbernabeu';
 const REPO_NAME = 'DevChallenges';
 
+// Cache configuration (1 minute = 60000 ms)
+const CACHE_DURATION = 60 * 1000;
+const CACHE_PREFIX = 'gh_cache_';
+
+interface CacheEntry<T> {
+    data: T;
+    timestamp: number;
+}
+
+// Helper functions for sessionStorage cache
+function getFromCache<T>(key: string): T | null {
+    try {
+        const cached = sessionStorage.getItem(CACHE_PREFIX + key);
+        if (!cached) return null;
+        
+        const entry: CacheEntry<T> = JSON.parse(cached);
+        if (Date.now() - entry.timestamp > CACHE_DURATION) {
+            sessionStorage.removeItem(CACHE_PREFIX + key);
+            return null;
+        }
+        return entry.data;
+    } catch {
+        return null;
+    }
+}
+
+function setInCache<T>(key: string, data: T): void {
+    try {
+        const entry: CacheEntry<T> = {
+            data,
+            timestamp: Date.now(),
+        };
+        sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify(entry));
+    } catch {
+        // sessionStorage might be full or disabled
+    }
+}
+
 export async function getParticipants(tag: string): Promise<Participant[]> {
+    // Check cache first
+    const cached = getFromCache<Participant[]>(`participants_${tag}`);
+    if (cached) {
+        console.log(`[Cache] Using cached participants for ${tag}`);
+        return cached;
+    }
+
     try {
         // Search for issues with the specific tag in the title or body
         // GitHub Search API is powerful for this.
@@ -52,6 +97,10 @@ export async function getParticipants(tag: string): Promise<Participant[]> {
             // or maybe random/placeholder if not found, but better to just show username
         }));
 
+        // Store in cache
+        setInCache(`participants_${tag}`, participants);
+        console.log(`[Cache] Stored participants for ${tag}`);
+
         return participants;
     } catch (error) {
         console.error('Error fetching participants:', error);
@@ -60,6 +109,13 @@ export async function getParticipants(tag: string): Promise<Participant[]> {
 }
 
 export async function getIssueComments(issueNumber: number): Promise<IssueComment[]> {
+    // Check cache first
+    const cached = getFromCache<IssueComment[]>(`comments_${issueNumber}`);
+    if (cached) {
+        console.log(`[Cache] Using cached comments for issue #${issueNumber}`);
+        return cached;
+    }
+
     try {
         const response = await fetch(
             `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues/${issueNumber}/comments`
@@ -72,13 +128,19 @@ export async function getIssueComments(issueNumber: number): Promise<IssueCommen
 
         const data = await response.json();
 
-        return data.map((comment: any) => ({
+        const comments: IssueComment[] = data.map((comment: any) => ({
             id: comment.id,
             username: comment.user.login,
             avatarUrl: comment.user.avatar_url,
             body: comment.body || '',
             createdAt: comment.created_at,
         }));
+
+        // Store in cache
+        setInCache(`comments_${issueNumber}`, comments);
+        console.log(`[Cache] Stored comments for issue #${issueNumber}`);
+
+        return comments;
     } catch (error) {
         console.error('Error fetching comments:', error);
         return [];

@@ -31,14 +31,60 @@
 </div>
 
 <script>
+    // Cache configuration
+    const CACHE_KEY = 'gh_cache_social_proof';
+    const CACHE_DURATION = 60 * 1000; // 1 minute
+
+    interface CacheEntry {
+        data: any[];
+        timestamp: number;
+    }
+
+    function getFromCache(): any[] | null {
+        try {
+            const cached = sessionStorage.getItem(CACHE_KEY);
+            if (!cached) return null;
+            
+            const entry: CacheEntry = JSON.parse(cached);
+            if (Date.now() - entry.timestamp > CACHE_DURATION) {
+                sessionStorage.removeItem(CACHE_KEY);
+                return null;
+            }
+            console.log('[Cache] Using cached social proof data');
+            return entry.data;
+        } catch {
+            return null;
+        }
+    }
+
+    function setInCache(data: any[]): void {
+        try {
+            const entry: CacheEntry = { data, timestamp: Date.now() };
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(entry));
+            console.log('[Cache] Stored social proof data');
+        } catch {
+            // sessionStorage might be full or disabled
+        }
+    }
+
     async function loadSocialProof() {
         try {
-            // Fetch all issues from the repo to count total solutions
-            const response = await fetch('https://api.github.com/search/issues?q=repo:yoanbernabeu/DevChallenges+is:issue&per_page=100');
-            if (!response.ok) return;
+            // Check cache first
+            let issues = getFromCache();
             
-            const data = await response.json();
-            const issues = data.items || [];
+            if (!issues) {
+                // Fetch all issues from the repo to count total solutions
+                const response = await fetch('https://api.github.com/search/issues?q=repo:yoanbernabeu/DevChallenges+is:issue&per_page=100');
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                issues = data.items || [];
+                
+                // Store in cache
+                if (issues.length > 0) {
+                    setInCache(issues);
+                }
+            }
             
             if (issues.length === 0) return;
 
