@@ -1,0 +1,332 @@
+---
+// SolutionModal.astro - Modal to display solution details and comments
+---
+
+<div id="solution-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop Blur -->
+    <div class="absolute inset-0 bg-[#0B0A16]/90 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+    
+    <!-- Modal Content Centering -->
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+        <!-- The Actual Card -->
+        <div id="solution-modal-content" class="bg-[#1E1C2E] border border-white/10 w-full max-w-2xl rounded-2xl shadow-2xl modal-enter transform overflow-hidden relative flex flex-col max-h-[90vh]">
+            
+            <!-- Decoration Top -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-purple to-brand-pink"></div>
+            
+            <!-- Header -->
+            <div class="p-6 border-b border-white/5 flex items-start justify-between shrink-0">
+                <div class="flex items-center gap-4">
+                    <img id="solution-avatar" src="" alt="" class="w-12 h-12 rounded-full border-2 border-brand-purple/50" />
+                    <div>
+                        <h3 id="solution-username" class="text-lg font-bold text-white"></h3>
+                        <p id="solution-title" class="text-sm text-gray-400 line-clamp-1"></p>
+                    </div>
+                </div>
+                <button id="close-solution-modal-btn" class="text-gray-400 hover:text-white transition rounded-lg p-2 hover:bg-white/5">
+                    <i class="fa-solid fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Solution Body -->
+                <div class="p-6 border-b border-white/5">
+                    <h4 class="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-code text-brand-purple"></i>
+                        Solution
+                    </h4>
+                    <div id="solution-body" class="prose prose-invert prose-sm max-w-none text-gray-300 bg-brand-surface/50 rounded-lg p-4 border border-white/5">
+                        <!-- Content loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-xs uppercase tracking-wider text-gray-500 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-comments text-brand-pink"></i>
+                            Commentaires
+                            <span id="comments-count" class="text-brand-purple">(0)</span>
+                        </h4>
+                    </div>
+                    
+                    <div id="solution-comments" class="space-y-4">
+                        <!-- Loading state -->
+                        <div id="comments-loading" class="animate-pulse space-y-3">
+                            <div class="flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-white/10"></div>
+                                <div class="flex-1 space-y-2">
+                                    <div class="h-3 bg-white/10 rounded w-24"></div>
+                                    <div class="h-4 bg-white/5 rounded w-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interaction CTA -->
+                    <div id="interaction-cta" class="mt-4 text-center text-gray-500 text-xs">
+                        <span>💬 Envie de réagir ? Laissez un commentaire sur GitHub !</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-white/5 bg-brand-surface/30 shrink-0">
+                <a 
+                    id="solution-github-link" 
+                    href="#" 
+                    target="_blank"
+                    class="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition flex items-center justify-center gap-2"
+                >
+                    <i class="fa-brands fa-github"></i>
+                    Voir sur GitHub
+                    <i class="fa-solid fa-external-link-alt text-xs opacity-50"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    import { getIssueComments, type Participant, type IssueComment } from '../utils/github';
+
+    interface SolutionModalData {
+        participant: Participant;
+    }
+
+    // Simple markdown to HTML converter for issue bodies
+    function parseMarkdown(text: string): string {
+        if (!text) return '<p class="text-gray-500 italic">Aucune description fournie.</p>';
+        
+        // Store code blocks and inline code temporarily to avoid processing URLs inside them
+        const codeBlocks: string[] = [];
+        const inlineCodes: string[] = [];
+        
+        let html = text;
+        
+        // Protect code blocks BEFORE escaping HTML
+        html = html.replace(/```[\s\S]*?```/g, (match) => {
+            codeBlocks.push(match);
+            return `⟦CODEBLOCK${codeBlocks.length - 1}⟧`;
+        });
+        
+        // Protect inline code BEFORE escaping HTML
+        html = html.replace(/`([^`]+)`/g, (match) => {
+            inlineCodes.push(match);
+            return `⟦INLINECODE${inlineCodes.length - 1}⟧`;
+        });
+        
+        // Now escape HTML
+        html = html
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        
+        html = html
+            // Headers
+            .replace(/^### (.+)$/gm, '<h4 class="text-white font-bold mt-4 mb-2">$1</h4>')
+            .replace(/^## (.+)$/gm, '<h3 class="text-white font-bold text-lg mt-4 mb-2">$1</h3>')
+            .replace(/^# (.+)$/gm, '<h2 class="text-white font-bold text-xl mt-4 mb-2">$1</h2>')
+            // Bold & Italic
+            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/___(.+?)___/g, '<strong><em>$1</em></strong>')
+            .replace(/__(.+?)__/g, '<strong class="text-white">$1</strong>')
+            .replace(/_(.+?)_/g, '<em>$1</em>')
+            // Markdown links [text](url)
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-brand-purple hover:text-brand-pink underline break-all">$1</a>')
+            // Raw URLs (https:// or http://) - must come after markdown links
+            .replace(/(^|[^"'>])((https?:\/\/)[^\s<\[\]"'⟦⟧]+)/gi, '$1<a href="$2" target="_blank" rel="noopener noreferrer" class="text-brand-purple hover:text-brand-pink underline break-all">$2</a>')
+            // Unordered lists
+            .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
+            .replace(/^\* (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
+            // Line breaks
+            .replace(/\n\n/g, '</p><p class="my-2">')
+            .replace(/\n/g, '<br/>');
+        
+        // Restore code blocks
+        codeBlocks.forEach((block, i) => {
+            const code = block.slice(3, -3).replace(/^\w+\n/, '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            html = html.replace(`⟦CODEBLOCK${i}⟧`, `<pre class="bg-black/30 rounded p-3 overflow-x-auto text-sm my-2 whitespace-pre-wrap"><code>${code}</code></pre>`);
+        });
+        
+        // Restore inline code
+        inlineCodes.forEach((code, i) => {
+            const content = code.slice(1, -1)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            html = html.replace(`⟦INLINECODE${i}⟧`, `<code class="bg-black/30 px-1.5 py-0.5 rounded text-brand-pink text-sm">${content}</code>`);
+        });
+        
+        return `<p class="my-2">${html}</p>`;
+    }
+
+    function formatDate(dateString: string): string {
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('fr-FR', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    }
+
+    function openSolutionModal(e: CustomEvent<SolutionModalData>) {
+        const modal = document.getElementById('solution-modal');
+        const content = document.getElementById('solution-modal-content');
+        
+        if (!modal || !content) return;
+
+        const { participant } = e.detail;
+
+        // Update modal content
+        (document.getElementById('solution-avatar') as HTMLImageElement).src = participant.avatarUrl;
+        (document.getElementById('solution-avatar') as HTMLImageElement).alt = participant.username;
+        document.getElementById('solution-username')!.textContent = participant.username;
+        document.getElementById('solution-title')!.textContent = participant.title;
+        document.getElementById('solution-body')!.innerHTML = parseMarkdown(participant.body);
+        (document.getElementById('solution-github-link') as HTMLAnchorElement).href = participant.url;
+
+        // Reset comments
+        document.getElementById('solution-comments')!.innerHTML = `
+            <div id="comments-loading" class="animate-pulse space-y-3">
+                <div class="flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-white/10"></div>
+                    <div class="flex-1 space-y-2">
+                        <div class="h-3 bg-white/10 rounded w-24"></div>
+                        <div class="h-4 bg-white/5 rounded w-full"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('comments-count')!.textContent = '(...)';
+
+        // Show modal
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('modal-enter');
+            content.classList.add('modal-enter-active');
+        }, 10);
+
+        // Load comments
+        loadComments(participant.issueNumber);
+    }
+
+    async function loadComments(issueNumber: number) {
+        const commentsContainer = document.getElementById('solution-comments')!;
+        const countEl = document.getElementById('comments-count')!;
+
+        try {
+            const comments = await getIssueComments(issueNumber);
+            countEl.textContent = `(${comments.length})`;
+
+            if (comments.length === 0) {
+                commentsContainer.innerHTML = `
+                    <div class="text-center py-6">
+                        <i class="fa-regular fa-comment-dots text-3xl text-gray-600 mb-3"></i>
+                        <p class="text-gray-500 text-sm">Aucun commentaire pour le moment.</p>
+                        <p class="text-gray-600 text-xs mt-1">Soyez le premier à commenter sur GitHub !</p>
+                    </div>
+                `;
+            } else {
+                commentsContainer.innerHTML = comments.map(comment => `
+                    <div class="flex gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+                        <img src="${comment.avatarUrl}" alt="${comment.username}" class="w-8 h-8 rounded-full border border-white/10 shrink-0" />
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-medium text-white">${comment.username}</span>
+                                <span class="text-xs text-gray-500">${formatDate(comment.createdAt)}</span>
+                            </div>
+                            <div class="text-sm text-gray-300 prose prose-invert prose-sm max-w-none">
+                                ${parseMarkdown(comment.body)}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Failed to load comments:', error);
+            commentsContainer.innerHTML = `
+                <p class="text-red-400 text-sm text-center">Erreur lors du chargement des commentaires.</p>
+            `;
+        }
+    }
+
+    function closeSolutionModal() {
+        const modal = document.getElementById('solution-modal');
+        const content = document.getElementById('solution-modal-content');
+
+        if (modal && content) {
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-exit-active');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                content.classList.remove('modal-exit-active');
+                content.classList.add('modal-enter');
+            }, 200);
+        }
+    }
+
+    // Event Listeners
+    document.addEventListener('open-solution-modal', openSolutionModal as EventListener);
+
+    const closeBtn = document.getElementById('close-solution-modal-btn');
+    if (closeBtn) closeBtn.addEventListener('click', closeSolutionModal);
+
+    const modal = document.getElementById('solution-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeSolutionModal();
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeSolutionModal();
+            }
+        });
+    }
+</script>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .modal-enter {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    .modal-enter-active {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        transition: all 0.2s ease-out;
+    }
+    .modal-exit-active {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+        transition: all 0.15s ease-in;
+    }
+</style>
+

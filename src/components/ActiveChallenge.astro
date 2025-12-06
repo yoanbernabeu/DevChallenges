@@ -351,18 +351,32 @@ const challengesData = JSON.stringify(challenges);
                         </div>
                     ` : '';
                     
-                    listEl.innerHTML = displayed.map(p => `
-                        <a href="${p.url}" target="_blank" class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer block">
+                    listEl.innerHTML = displayed.map((p, index) => `
+                        <button class="active-solution-btn flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition group cursor-pointer w-full text-left" data-index="${index}">
                             <img src="${p.avatarUrl}" loading="lazy" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar de ${p.username}" />
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-white truncate">${p.username}</p>
                                 <p class="text-xs text-gray-500 truncate">Voir la solution</p>
                             </div>
                             <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition">
-                                <i class="fa-brands fa-github text-gray-400 group-hover:text-white"></i>
+                                <i class="fa-solid fa-eye text-gray-400 group-hover:text-brand-purple"></i>
                             </div>
-                        </a>
+                        </button>
                     `).join('') + placeholderCard;
+
+                    // Store participants for click handlers
+                    (window as any).__activeParticipants = participants;
+
+                    // Add click handlers
+                    document.querySelectorAll('.active-solution-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const index = parseInt(btn.getAttribute('data-index') || '0');
+                            const participant = (window as any).__activeParticipants[index];
+                            document.dispatchEvent(new CustomEvent('open-solution-modal', { 
+                                detail: { participant } 
+                            }));
+                        });
+                    });
                 }
             }
 
@@ -376,17 +390,31 @@ const challengesData = JSON.stringify(challenges);
             // Update Modal List
             const modalListEl = document.getElementById('modal-participants-list');
             if (modalListEl) {
-                modalListEl.innerHTML = participants.map(p => `
-                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition">
+                modalListEl.innerHTML = participants.map((p, index) => `
+                    <button class="modal-solution-btn flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition w-full text-left" data-index="${index}">
                         <img src="${p.avatarUrl}" loading="lazy" class="w-10 h-10 rounded-full border border-white/10" alt="Avatar de ${p.username}" />
                         <div class="flex-1">
                             <p class="text-sm font-medium text-white">${p.username}</p>
                         </div>
-                        <a href="${p.url}" target="_blank" class="text-brand-purple hover:text-white text-sm font-medium">
-                            Voir <i class="fa-solid fa-external-link-alt ml-1 text-xs"></i>
-                        </a>
-                    </div>
+                        <span class="text-brand-purple hover:text-white text-sm font-medium flex items-center gap-1">
+                            Voir <i class="fa-solid fa-eye ml-1 text-xs"></i>
+                        </span>
+                    </button>
                 `).join('');
+
+                // Add click handlers for modal list
+                document.querySelectorAll('.modal-solution-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // Close participants modal first
+                        participantsModal?.classList.add('hidden');
+                        
+                        const index = parseInt(btn.getAttribute('data-index') || '0');
+                        const participant = (window as any).__activeParticipants[index];
+                        document.dispatchEvent(new CustomEvent('open-solution-modal', { 
+                            detail: { participant } 
+                        }));
+                    });
+                });
             }
 
         } catch (error) {

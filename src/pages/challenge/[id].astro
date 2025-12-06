@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
 import SubmissionModal from '../../components/SubmissionModal.astro';
+import SolutionModal from '../../components/SolutionModal.astro';
 import SubmitCTA from '../../components/SubmitCTA.astro';
 import challenges from '../../data/challenges.json';
 
@@ -259,6 +260,7 @@ const challengeData = JSON.stringify({
 
     <Footer />
     <SubmissionModal />
+    <SolutionModal />
 </Layout>
 
 <script>
@@ -352,16 +354,30 @@ const challengeData = JSON.stringify({
                                 });
                             }
                         } else {
-                            grid.innerHTML = participants.map(p => `
-                                <a href="${p.url}" target="_blank" class="flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/5 hover:border-brand-purple/30 group">
+                            grid.innerHTML = participants.map((p, index) => `
+                                <button 
+                                    class="solution-btn flex items-center gap-3 p-4 rounded-lg bg-white/5 hover:bg-white/10 transition border border-white/5 hover:border-brand-purple/30 group text-left w-full"
+                                    data-index="${index}"
+                                >
                                     <img src="${p.avatarUrl}" loading="lazy" class="w-10 h-10 rounded-full border border-white/10" alt="${p.username}" />
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm font-medium text-white truncate group-hover:text-brand-purple transition">${p.username}</p>
                                         <p class="text-xs text-gray-500">Voir la solution</p>
                                     </div>
-                                    <i class="fa-brands fa-github text-gray-500 group-hover:text-white transition"></i>
-                                </a>
+                                    <i class="fa-solid fa-eye text-gray-500 group-hover:text-brand-purple transition"></i>
+                                </button>
                             `).join('');
+
+                            // Add click handlers for solution buttons
+                            document.querySelectorAll('.solution-btn').forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const index = parseInt(btn.getAttribute('data-index') || '0');
+                                    const participant = participants[index];
+                                    document.dispatchEvent(new CustomEvent('open-solution-modal', { 
+                                        detail: { participant } 
+                                    }));
+                                });
+                            });
                         }
                     }
                 } catch (error) {
