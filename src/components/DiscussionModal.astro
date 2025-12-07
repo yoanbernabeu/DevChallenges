@@ -1,0 +1,558 @@
+---
+// DiscussionModal.astro - Modal to display discussion details and comments
+---
+
+<div id="discussion-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop Blur -->
+    <div class="absolute inset-0 bg-[#0B0A16]/90 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+    
+    <!-- Modal Content Centering -->
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+        <!-- The Actual Card -->
+        <div id="discussion-modal-content" class="bg-[#1E1C2E] border border-white/10 w-full max-w-2xl rounded-2xl shadow-2xl modal-enter transform overflow-hidden relative flex flex-col max-h-[90vh]">
+            
+            <!-- Decoration Top -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-purple to-brand-pink"></div>
+            
+            <!-- Header -->
+            <div class="p-6 border-b border-white/5 flex items-start justify-between shrink-0">
+                <div class="flex items-center gap-4 flex-1 min-w-0">
+                    <img id="discussion-avatar" src="" alt="" class="w-12 h-12 rounded-full border-2 border-brand-purple/50 shrink-0" />
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 id="discussion-username" class="text-lg font-bold text-white"></h3>
+                            <span id="discussion-category" class="text-xs px-2 py-0.5 rounded-full border"></span>
+                        </div>
+                        <p id="discussion-date" class="text-sm text-gray-500 mt-0.5"></p>
+                    </div>
+                </div>
+                <button id="close-discussion-modal-btn" class="text-gray-400 hover:text-white transition rounded-lg p-2 hover:bg-white/5 shrink-0 ml-2">
+                    <i class="fa-solid fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Title -->
+            <div class="px-6 py-4 border-b border-white/5 shrink-0">
+                <h2 id="discussion-title" class="text-xl font-bold text-white"></h2>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Discussion Body -->
+                <div class="p-6 border-b border-white/5">
+                    <div id="discussion-body" class="prose prose-invert prose-sm max-w-none text-gray-300">
+                        <!-- Content loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-xs uppercase tracking-wider text-gray-500 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-comments text-brand-pink"></i>
+                            Commentaires
+                            <span id="discussion-comments-count" class="text-brand-purple">(0)</span>
+                        </h4>
+                    </div>
+                    
+                    <div id="discussion-comments" class="space-y-4">
+                        <!-- Loading state -->
+                        <div id="discussion-comments-loading" class="animate-pulse space-y-3">
+                            <div class="flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-white/10"></div>
+                                <div class="flex-1 space-y-2">
+                                    <div class="h-3 bg-white/10 rounded w-24"></div>
+                                    <div class="h-4 bg-white/5 rounded w-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interaction CTA -->
+                    <div class="mt-4 text-center text-gray-500 text-xs">
+                        <span>💬 Envie de participer ? Rejoignez la discussion sur GitHub !</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-white/5 bg-brand-surface/30 shrink-0 flex gap-3">
+                <button 
+                    id="close-discussion-btn" 
+                    class="flex-1 py-3 bg-white/5 text-gray-300 font-medium rounded-lg hover:bg-white/10 transition flex items-center justify-center gap-2 border border-white/10"
+                >
+                    Fermer
+                </button>
+                <a 
+                    id="discussion-github-link" 
+                    href="#" 
+                    target="_blank"
+                    class="flex-1 py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition flex items-center justify-center gap-2"
+                >
+                    <i class="fa-brands fa-github"></i>
+                    Participer
+                    <i class="fa-solid fa-external-link-alt text-xs opacity-50"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    interface DiscussionComment {
+        id: string;
+        body: string;
+        bodyHTML: string;
+        createdAt: string;
+        author: {
+            login: string;
+            avatarUrl: string;
+        };
+        upvoteCount: number;
+    }
+
+    interface DiscussionDetail {
+        id: string;
+        title: string;
+        url: string;
+        createdAt: string;
+        body: string;
+        bodyHTML: string;
+        author: {
+            login: string;
+            avatarUrl: string;
+        };
+        category: {
+            name: string;
+            emoji: string;
+        };
+        upvoteCount: number;
+        comments: {
+            totalCount: number;
+            nodes: DiscussionComment[];
+        };
+    }
+
+    interface DiscussionModalData {
+        discussionId: string;
+        // Preview data for immediate display
+        title: string;
+        url: string;
+        author: {
+            login: string;
+            avatarUrl: string;
+        };
+        category: {
+            name: string;
+            emoji: string;
+        };
+        createdAt: string;
+    }
+
+    // GitHub emoji shortcode to Unicode mapping
+    const emojiMap: Record<string, string> = {
+        ':mega:': '📣',
+        ':speech_balloon:': '💬',
+        ':bulb:': '💡',
+        ':ballot_box:': '🗳️',
+        ':pray:': '🙏',
+        ':raised_hands:': '🙌',
+        ':rocket:': '🚀',
+        ':bug:': '🐛',
+        ':sparkles:': '✨',
+        ':question:': '❓',
+        ':thumbsup:': '👍',
+        ':thumbsdown:': '👎',
+        ':heart:': '❤️',
+        ':fire:': '🔥',
+        ':star:': '⭐',
+        ':warning:': '⚠️',
+        ':white_check_mark:': '✅',
+        ':x:': '❌',
+        ':eyes:': '👀',
+        ':tada:': '🎉',
+        ':thinking:': '🤔',
+        ':clap:': '👏',
+        ':zap:': '⚡',
+        ':gear:': '⚙️',
+        ':hammer:': '🔨',
+        ':wrench:': '🔧',
+        ':package:': '📦',
+        ':book:': '📖',
+        ':memo:': '📝',
+        ':clipboard:': '📋',
+        ':pushpin:': '📌',
+        ':lock:': '🔒',
+        ':key:': '🔑',
+        ':link:': '🔗',
+        ':globe_with_meridians:': '🌐',
+        ':earth_africa:': '🌍',
+        ':chart_with_upwards_trend:': '📈',
+        ':bar_chart:': '📊',
+        ':calendar:': '📅',
+        ':clock1:': '🕐',
+        ':hourglass:': '⏳',
+        ':bell:': '🔔',
+        ':loudspeaker:': '📢',
+        ':mute:': '🔇',
+        ':no_entry_sign:': '🚫',
+        ':construction:': '🚧',
+        ':heavy_plus_sign:': '➕',
+        ':heavy_minus_sign:': '➖',
+        ':heavy_check_mark:': '✔️',
+        ':arrows_counterclockwise:': '🔄',
+        ':arrow_right:': '➡️',
+        ':arrow_left:': '⬅️',
+        ':arrow_up:': '⬆️',
+        ':arrow_down:': '⬇️',
+        ':information_source:': 'ℹ️',
+        ':shield:': '🛡️',
+        ':trophy:': '🏆',
+        ':medal:': '🏅',
+        ':crown:': '👑',
+        ':gem:': '💎',
+        ':moneybag:': '💰',
+        ':gift:': '🎁',
+        ':balloon:': '🎈',
+        ':confetti_ball:': '🎊',
+        ':party_popper:': '🎉',
+        ':art:': '🎨',
+        ':musical_note:': '🎵',
+        ':movie_camera:': '🎥',
+        ':camera:': '📷',
+        ':computer:': '💻',
+        ':keyboard:': '⌨️',
+        ':desktop_computer:': '🖥️',
+        ':mobile_phone:': '📱',
+        ':telephone:': '☎️',
+        ':email:': '📧',
+        ':inbox_tray:': '📥',
+        ':outbox_tray:': '📤',
+        ':file_folder:': '📁',
+        ':open_file_folder:': '📂',
+        ':page_facing_up:': '📄',
+        ':newspaper:': '📰',
+        ':bookmark:': '🔖',
+        ':label:': '🏷️',
+        ':money_with_wings:': '💸',
+        ':credit_card:': '💳',
+        ':chart:': '💹',
+    };
+
+    // Convert GitHub emoji shortcode to Unicode
+    function convertEmoji(emojiCode: string): string {
+        if (!emojiCode) return '💬';
+        // If it's already a unicode emoji, return it
+        if (!emojiCode.startsWith(':')) return emojiCode;
+        return emojiMap[emojiCode] || emojiCode.replace(/:/g, '');
+    }
+
+    // Category colors
+    const categoryColors: Record<string, string> = {
+        'Announcements': 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+        'General': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+        'Ideas': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+        'Polls': 'bg-green-500/10 text-green-400 border-green-500/20',
+        'Q&A': 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+        'Show and tell': 'bg-pink-500/10 text-pink-400 border-pink-500/20',
+    };
+
+    function formatDate(dateString: string): string {
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('fr-FR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    }
+
+    // Cache for discussion details (1 minute TTL)
+    const discussionCache = new Map<string, { data: DiscussionDetail; timestamp: number }>();
+    const CACHE_TTL = 60 * 1000; // 1 minute
+
+    async function fetchDiscussionDetail(discussionId: string): Promise<DiscussionDetail | null> {
+        // Check cache first
+        const cached = discussionCache.get(discussionId);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+            return cached.data;
+        }
+
+        try {
+            const response = await fetch(`/api/discussion/${encodeURIComponent(discussionId)}`);
+            if (!response.ok) return null;
+            const data = await response.json();
+            
+            if (data.discussion) {
+                // Store in cache
+                discussionCache.set(discussionId, {
+                    data: data.discussion,
+                    timestamp: Date.now()
+                });
+            }
+            
+            return data.discussion;
+        } catch (error) {
+            console.error('Failed to fetch discussion detail:', error);
+            return null;
+        }
+    }
+
+    function openDiscussionModal(e: CustomEvent<DiscussionModalData>) {
+        const modal = document.getElementById('discussion-modal');
+        const content = document.getElementById('discussion-modal-content');
+        
+        if (!modal || !content) return;
+
+        const { discussionId, title, url, author, category, createdAt } = e.detail;
+
+        // Show preview data immediately
+        const avatarEl = document.getElementById('discussion-avatar') as HTMLImageElement;
+        const usernameEl = document.getElementById('discussion-username');
+        const titleEl = document.getElementById('discussion-title');
+        const categoryEl = document.getElementById('discussion-category');
+        const dateEl = document.getElementById('discussion-date');
+        const bodyEl = document.getElementById('discussion-body');
+        const commentsEl = document.getElementById('discussion-comments');
+        const countEl = document.getElementById('discussion-comments-count');
+        const linkEl = document.getElementById('discussion-github-link') as HTMLAnchorElement;
+
+        if (avatarEl) {
+            avatarEl.src = author?.avatarUrl || 'https://github.com/ghost.png';
+            avatarEl.alt = author?.login || 'Anonyme';
+        }
+        if (usernameEl) usernameEl.textContent = author?.login || 'Anonyme';
+        if (titleEl) titleEl.textContent = title;
+        if (dateEl) dateEl.textContent = formatDate(createdAt);
+        if (linkEl) linkEl.href = url;
+
+        // Category badge
+        if (categoryEl) {
+            const categoryName = category?.name || 'General';
+            const emoji = convertEmoji(category?.emoji || ':speech_balloon:');
+            const colorClass = categoryColors[categoryName] || 'bg-white/5 text-gray-400 border-white/10';
+            categoryEl.className = `text-xs px-2 py-0.5 rounded-full border ${colorClass}`;
+            categoryEl.textContent = `${emoji} ${categoryName}`;
+        }
+
+        // Show loading state for body and comments
+        if (bodyEl) {
+            bodyEl.innerHTML = `
+                <div class="animate-pulse space-y-3">
+                    <div class="h-4 bg-white/10 rounded w-full"></div>
+                    <div class="h-4 bg-white/10 rounded w-5/6"></div>
+                    <div class="h-4 bg-white/10 rounded w-4/6"></div>
+                </div>
+            `;
+        }
+        if (commentsEl) {
+            commentsEl.innerHTML = `
+                <div class="animate-pulse space-y-3">
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/10"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-3 bg-white/10 rounded w-24"></div>
+                            <div class="h-4 bg-white/5 rounded w-full"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        if (countEl) countEl.textContent = '(...)';
+
+        // Show modal
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.remove('modal-enter');
+            content.classList.add('modal-enter-active');
+        }, 10);
+
+        // Load full discussion detail
+        loadDiscussionDetail(discussionId);
+    }
+
+    async function loadDiscussionDetail(discussionId: string) {
+        const bodyEl = document.getElementById('discussion-body');
+        const commentsEl = document.getElementById('discussion-comments');
+        const countEl = document.getElementById('discussion-comments-count');
+
+        const detail = await fetchDiscussionDetail(discussionId);
+
+        if (!detail) {
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <p class="text-gray-400 italic">Impossible de charger le contenu de la discussion.</p>
+                `;
+            }
+            if (commentsEl) {
+                commentsEl.innerHTML = `
+                    <p class="text-gray-400 text-sm text-center">Erreur lors du chargement des commentaires.</p>
+                `;
+            }
+            return;
+        }
+
+        // Display body (use bodyHTML if available, otherwise plain text)
+        if (bodyEl) {
+            if (detail.bodyHTML) {
+                bodyEl.innerHTML = detail.bodyHTML;
+            } else if (detail.body) {
+                bodyEl.innerHTML = `<p class="whitespace-pre-wrap">${escapeHtml(detail.body)}</p>`;
+            } else {
+                bodyEl.innerHTML = `<p class="text-gray-500 italic">Aucun contenu.</p>`;
+            }
+        }
+
+        // Display comments
+        const comments = detail.comments?.nodes || [];
+        if (countEl) countEl.textContent = `(${detail.comments?.totalCount || 0})`;
+
+        if (commentsEl) {
+            if (comments.length === 0) {
+                commentsEl.innerHTML = `
+                    <div class="text-center py-6">
+                        <i class="fa-regular fa-comment-dots text-3xl text-gray-600 mb-3"></i>
+                        <p class="text-gray-500 text-sm">Aucun commentaire pour le moment.</p>
+                        <p class="text-gray-600 text-xs mt-1">Soyez le premier à commenter sur GitHub !</p>
+                    </div>
+                `;
+            } else {
+                commentsEl.innerHTML = comments.map(comment => `
+                    <div class="flex gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+                        <img src="${comment.author?.avatarUrl || 'https://github.com/ghost.png'}" alt="${comment.author?.login || 'Anonyme'}" class="w-8 h-8 rounded-full border border-white/10 shrink-0" />
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                <span class="text-sm font-medium text-white">${comment.author?.login || 'Anonyme'}</span>
+                                <span class="text-xs text-gray-500">${formatDate(comment.createdAt)}</span>
+                                ${comment.upvoteCount > 0 ? `<span class="text-xs text-gray-500 flex items-center gap-1"><i class="fa-solid fa-arrow-up"></i>${comment.upvoteCount}</span>` : ''}
+                            </div>
+                            <div class="text-sm text-gray-300 prose prose-invert prose-sm max-w-none">
+                                ${comment.bodyHTML || escapeHtml(comment.body)}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    }
+
+    function escapeHtml(text: string): string {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function closeDiscussionModal() {
+        const modal = document.getElementById('discussion-modal');
+        const content = document.getElementById('discussion-modal-content');
+
+        if (modal && content) {
+            content.classList.remove('modal-enter-active');
+            content.classList.add('modal-exit-active');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                content.classList.remove('modal-exit-active');
+                content.classList.add('modal-enter');
+            }, 200);
+        }
+    }
+
+    // Event Listeners
+    document.addEventListener('open-discussion-modal', openDiscussionModal as EventListener);
+
+    const closeBtn = document.getElementById('close-discussion-modal-btn');
+    if (closeBtn) closeBtn.addEventListener('click', closeDiscussionModal);
+
+    const closeBtn2 = document.getElementById('close-discussion-btn');
+    if (closeBtn2) closeBtn2.addEventListener('click', closeDiscussionModal);
+
+    const modal = document.getElementById('discussion-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeDiscussionModal();
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeDiscussionModal();
+            }
+        });
+    }
+</script>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .modal-enter {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    .modal-enter-active {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        transition: all 0.2s ease-out;
+    }
+    .modal-exit-active {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+        transition: all 0.15s ease-in;
+    }
+
+    /* Style GitHub HTML content */
+    #discussion-body :global(a) {
+        color: #a78bfa;
+    }
+    #discussion-body :global(a:hover) {
+        color: #c4b5fd;
+    }
+    #discussion-body :global(pre) {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+    }
+    #discussion-body :global(code) {
+        font-size: 0.875rem;
+    }
+    #discussion-body :global(img) {
+        max-width: 100%;
+        border-radius: 0.5rem;
+    }
+    #discussion-body :global(blockquote) {
+        border-left: 3px solid #a78bfa;
+        padding-left: 1rem;
+        margin-left: 0;
+        color: #9ca3af;
+    }
+    #discussion-body :global(ul), #discussion-body :global(ol) {
+        padding-left: 1.5rem;
+    }
+    #discussion-body :global(li) {
+        margin: 0.25rem 0;
+    }
+
+    #discussion-comments :global(.prose a) {
+        color: #a78bfa;
+    }
+    #discussion-comments :global(.prose a:hover) {
+        color: #c4b5fd;
+    }
+</style>

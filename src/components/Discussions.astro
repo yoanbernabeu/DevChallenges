@@ -2,6 +2,7 @@
 // Component for displaying GitHub Discussions
 // Data is fetched client-side via a secure server-side API route
 // The GitHub token is stored securely in Netlify environment variables
+import DiscussionModal from './DiscussionModal.astro';
 ---
 
 <section id="discussions" class="space-y-6">
@@ -72,15 +73,21 @@
     </div>
 </section>
 
+<!-- Discussion Modal -->
+<DiscussionModal />
+
 <script>
     // Fetch discussions from our secure server-side API route
     // The GitHub token is never exposed to the client
+    // Client-side cache to avoid repeated API calls
     
     interface Discussion {
         id: string;
         title: string;
         url: string;
         createdAt: string;
+        body?: string;
+        bodyHTML?: string;
         author: {
             login: string;
             avatarUrl: string;
@@ -95,27 +102,113 @@
         upvoteCount: number;
     }
 
+    // Client-side cache with 1 minute TTL
+    const CACHE_KEY = 'discussions_cache';
+    const CACHE_TTL = 60 * 1000; // 1 minute
+
+    interface CacheData {
+        discussions: Discussion[];
+        timestamp: number;
+    }
+
+    function getFromCache(): Discussion[] | null {
+        try {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (!cached) return null;
+            
+            const data: CacheData = JSON.parse(cached);
+            if (Date.now() - data.timestamp > CACHE_TTL) {
+                localStorage.removeItem(CACHE_KEY);
+                return null;
+            }
+            return data.discussions;
+        } catch {
+            return null;
+        }
+    }
+
+    function saveToCache(discussions: Discussion[]): void {
+        try {
+            const data: CacheData = {
+                discussions,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        } catch {
+            // localStorage might be full or disabled
+        }
+    }
+
     async function fetchDiscussions(limit: number = 6): Promise<Discussion[]> {
+        // Check cache first
+        const cached = getFromCache();
+        if (cached) {
+            console.log('📦 Discussions loaded from cache');
+            return cached;
+        }
+
         try {
             const response = await fetch(`/api/discussions?limit=${limit}`);
             if (!response.ok) return [];
             const data = await response.json();
-            return data.discussions || [];
+            const discussions = data.discussions || [];
+            
+            // Save to cache
+            if (discussions.length > 0) {
+                saveToCache(discussions);
+                console.log('💾 Discussions saved to cache');
+            }
+            
+            return discussions;
         } catch (error) {
             console.error('Failed to fetch discussions:', error);
             return [];
         }
     }
 
-    // Category emoji mapping
-    const categoryEmojis: Record<string, string> = {
-        'Announcements': '📣',
-        'General': '💬',
-        'Ideas': '💡',
-        'Polls': '🗳️',
-        'Q&A': '🙏',
-        'Show and tell': '🙌',
+    // GitHub emoji shortcode to Unicode mapping
+    const emojiMap: Record<string, string> = {
+        ':mega:': '📣',
+        ':speech_balloon:': '💬',
+        ':bulb:': '💡',
+        ':ballot_box:': '🗳️',
+        ':pray:': '🙏',
+        ':raised_hands:': '🙌',
+        ':rocket:': '🚀',
+        ':bug:': '🐛',
+        ':sparkles:': '✨',
+        ':question:': '❓',
+        ':thumbsup:': '👍',
+        ':heart:': '❤️',
+        ':fire:': '🔥',
+        ':star:': '⭐',
+        ':warning:': '⚠️',
+        ':white_check_mark:': '✅',
+        ':x:': '❌',
+        ':eyes:': '👀',
+        ':tada:': '🎉',
+        ':thinking:': '🤔',
+        ':zap:': '⚡',
+        ':gear:': '⚙️',
+        ':package:': '📦',
+        ':book:': '📖',
+        ':memo:': '📝',
+        ':loudspeaker:': '📢',
+        ':construction:': '🚧',
+        ':trophy:': '🏆',
+        ':gem:': '💎',
+        ':gift:': '🎁',
+        ':art:': '🎨',
+        ':computer:': '💻',
     };
+
+    // Convert GitHub emoji shortcode to Unicode
+    function convertEmoji(emojiCode: string): string {
+        if (!emojiCode) return '💬';
+        // If it's already a unicode emoji, return it
+        if (!emojiCode.startsWith(':')) return emojiCode;
+        return emojiMap[emojiCode] || '💬';
+    }
 
     // Category colors
     const categoryColors: Record<string, string> = {
@@ -143,12 +236,27 @@
         return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
     }
 
+    // Open discussion modal
+    function openDiscussion(discussion: Discussion) {
+        const event = new CustomEvent('open-discussion-modal', {
+            detail: {
+                discussionId: discussion.id,
+                title: discussion.title,
+                url: discussion.url,
+                author: discussion.author,
+                category: discussion.category,
+                createdAt: discussion.createdAt,
+            }
+        });
+        document.dispatchEvent(event);
+    }
+
     async function initDiscussions() {
         const grid = document.getElementById('discussions-grid');
         if (!grid) return;
 
         try {
-            // Fetch from our secure server-side API route
+            // Fetch from our secure server-side API route (with client cache)
             const discussions = await fetchDiscussions(6);
 
             if (discussions.length === 0) {
@@ -179,19 +287,19 @@
                 return;
             }
 
-            // Build discussions HTML
+            // Build discussions HTML - now with buttons instead of links
             let html = '';
-            discussions.forEach((discussion) => {
+            discussions.forEach((discussion, index) => {
                 const categoryName = discussion.category?.name || 'General';
-                const emoji = discussion.category?.emoji || categoryEmojis[categoryName] || '💬';
+                const emoji = convertEmoji(discussion.category?.emoji);
                 const colorClass = categoryColors[categoryName] || 'bg-white/5 text-gray-400 border-white/10';
                 const timeAgo = formatRelativeTime(discussion.createdAt);
 
                 html += `
-                    <a 
-                        href="${discussion.url}" 
-                        target="_blank"
-                        class="glass-panel rounded-xl p-5 hover:border-brand-purple/50 transition duration-300 group block"
+                    <button 
+                        type="button"
+                        data-discussion-index="${index}"
+                        class="discussion-card glass-panel rounded-xl p-5 hover:border-brand-purple/50 transition duration-300 group block text-left w-full cursor-pointer"
                     >
                         <!-- Header with author -->
                         <div class="flex items-center gap-3 mb-3">
@@ -210,7 +318,7 @@
                         </div>
 
                         <!-- Title -->
-                        <h3 class="text-white font-medium mb-3 line-clamp-2 group-hover:text-brand-purple transition">
+                        <h3 class="text-white font-medium mb-3 line-clamp-2 group-hover:text-brand-purple transition text-left">
                             ${discussion.title}
                         </h3>
 
@@ -228,11 +336,20 @@
                                 Voir <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </span>
                         </div>
-                    </a>
+                    </button>
                 `;
             });
 
             grid.innerHTML = html;
+
+            // Add click handlers to open modal
+            const cards = grid.querySelectorAll('.discussion-card');
+            cards.forEach((card) => {
+                card.addEventListener('click', () => {
+                    const index = parseInt(card.getAttribute('data-discussion-index') || '0');
+                    openDiscussion(discussions[index]);
+                });
+            });
 
         } catch (error) {
             console.error('Failed to load discussions:', error);

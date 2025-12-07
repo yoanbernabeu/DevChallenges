@@ -32,6 +32,8 @@ export const GET: APIRoute = async ({ url }) => {
                             title
                             url
                             createdAt
+                            body
+                            bodyHTML
                             author {
                                 login
                                 avatarUrl
