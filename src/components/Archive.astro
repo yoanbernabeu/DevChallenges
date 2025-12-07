@@ -1,18 +1,8 @@
 ---
 import challenges from '../data/challenges.json';
 
-const now = new Date();
-const archivedChallenges = challenges.map(c => {
-    const start = new Date(c.startDate.replace('Z', ''));
-    const end = new Date(start);
-    end.setDate(end.getDate() + 6);
-    end.setHours(23, 59, 59, 999);
-    return { ...c, endDate: end };
-}).filter(c => {
-    return now > c.endDate;
-}).sort((a, b) => b.endDate.getTime() - a.endDate.getTime());
-
-const totalPlaceholders = Math.max(0, 6 - archivedChallenges.length);
+// Pass all challenges to the client - archived ones will be determined client-side
+const challengesData = JSON.stringify(challenges);
 
 const gradients = [
     'from-brand-purple/50 to-blue-900/50',
@@ -24,7 +14,7 @@ const gradients = [
 ];
 ---
 
-<div id="archive" class="space-y-8">
+<div id="archive" class="space-y-8" data-challenges={challengesData} data-gradients={JSON.stringify(gradients)}>
     <div class="flex justify-between items-end border-b border-white/10 pb-4">
         <h2 class="text-3xl font-bold text-white">Archives</h2>
         
@@ -38,95 +28,170 @@ const gradients = [
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="archive-grid">
-        {archivedChallenges.map((challenge, index) => (
-            <a 
-                href={`/challenge/${challenge.id}`}
-                class="project-card block glass-panel rounded-xl overflow-hidden group cursor-pointer hover:border-brand-purple/50 transition duration-300"
-                data-challenge={JSON.stringify(challenge)}
-                data-difficulty={challenge.difficulty}
-            >
-                <div class="h-40 bg-gray-800 relative overflow-hidden">
-                    <!-- Dynamic Gradient -->
-                    <div class={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]}`}></div>
-                    <div class="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-white/20 group-hover:scale-110 transition duration-500 text-center px-4">
-                        {challenge.title}
-                    </div>
-                </div>
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-lg font-bold text-white group-hover:text-brand-purple transition">{challenge.title}</h3>
-                        <span class={`text-xs px-2 py-0.5 rounded border ${
-                            challenge.difficulty === 'Easy' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                            challenge.difficulty === 'Medium' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                            'bg-orange-500/10 text-orange-400 border-orange-500/20'
-                        }`}>{challenge.difficulty}</span>
-                    </div>
-                    <p class="text-sm text-gray-400 mb-4 line-clamp-2">{challenge.description}</p>
-                    <div class="flex items-center justify-between text-xs text-gray-500">
-                        <span><i class="fa-regular fa-calendar mr-1"></i> {challenge.tag}</span>
-                        <span class="text-brand-purple group-hover:text-white transition flex items-center gap-1">
-                            Voir <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </span>
-                    </div>
-                </div>
-            </a>
-        ))}
-
-        <!-- Blurred Cards for Future History -->
-        {Array.from({ length: totalPlaceholders }).map((_, i) => (
-            <div class="placeholder-card glass-panel rounded-xl overflow-hidden opacity-50 grayscale blur-[2px] pointer-events-none select-none relative">
-                <div class="h-40 bg-gray-800/50"></div>
-                <div class="p-5 space-y-3">
-                    <div class="h-6 bg-white/10 rounded w-3/4"></div>
-                    <div class="h-4 bg-white/5 rounded w-full"></div>
-                    <div class="h-4 bg-white/5 rounded w-1/2"></div>
-                </div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <span class="bg-black/50 text-white px-3 py-1 rounded-full text-xs font-mono border border-white/10">Coming Soon</span>
-                </div>
+        <!-- Loading State -->
+        <div class="archive-loading glass-panel rounded-xl overflow-hidden animate-pulse">
+            <div class="h-40 bg-gray-800/50"></div>
+            <div class="p-5 space-y-3">
+                <div class="h-6 bg-white/10 rounded w-3/4"></div>
+                <div class="h-4 bg-white/5 rounded w-full"></div>
+                <div class="h-4 bg-white/5 rounded w-1/2"></div>
             </div>
-        ))}
+        </div>
+        <div class="archive-loading glass-panel rounded-xl overflow-hidden animate-pulse">
+            <div class="h-40 bg-gray-800/50"></div>
+            <div class="p-5 space-y-3">
+                <div class="h-6 bg-white/10 rounded w-3/4"></div>
+                <div class="h-4 bg-white/5 rounded w-full"></div>
+                <div class="h-4 bg-white/5 rounded w-1/2"></div>
+            </div>
+        </div>
+        <div class="archive-loading glass-panel rounded-xl overflow-hidden animate-pulse">
+            <div class="h-40 bg-gray-800/50"></div>
+            <div class="p-5 space-y-3">
+                <div class="h-6 bg-white/10 rounded w-3/4"></div>
+                <div class="h-4 bg-white/5 rounded w-full"></div>
+                <div class="h-4 bg-white/5 rounded w-1/2"></div>
+            </div>
+        </div>
     </div>
-
 </div>
 
 <script>
-    const cards = document.querySelectorAll('.project-card[data-challenge]');
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const placeholders = document.querySelectorAll('.placeholder-card');
+    function initArchive() {
+        const container = document.getElementById('archive');
+        const grid = document.getElementById('archive-grid');
+        if (!container || !grid) return;
 
-    // Filtering Logic
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Update Active State
-            filterBtns.forEach(b => {
-                b.classList.remove('bg-white', 'text-black');
-                b.classList.add('bg-white/5', 'text-gray-400');
+        const challengesData = container.dataset.challenges;
+        const gradientsData = container.dataset.gradients;
+        if (!challengesData || !gradientsData) return;
+
+        try {
+            const challenges = JSON.parse(challengesData);
+            const gradients = JSON.parse(gradientsData);
+            const now = new Date();
+
+            // Calculate archived challenges (client-side, based on current date)
+            const archivedChallenges = challenges.map((c: any) => {
+                const start = new Date(c.startDate.replace('Z', ''));
+                const end = new Date(start);
+                end.setDate(end.getDate() + 6);
+                end.setHours(23, 59, 59, 999);
+                return { ...c, endDate: end };
+            }).filter((c: any) => {
+                return now > c.endDate;
+            }).sort((a: any, b: any) => b.endDate.getTime() - a.endDate.getTime());
+
+            const totalPlaceholders = Math.max(0, 6 - archivedChallenges.length);
+
+            // Build HTML for archived challenges
+            let html = '';
+
+            archivedChallenges.forEach((challenge: any, index: number) => {
+                const gradient = gradients[index % gradients.length];
+                const difficultyClass = challenge.difficulty === 'Easy' 
+                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                    : challenge.difficulty === 'Medium'
+                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                    : 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+
+                html += `
+                    <a 
+                        href="/challenge/${challenge.id}"
+                        class="project-card block glass-panel rounded-xl overflow-hidden group cursor-pointer hover:border-brand-purple/50 transition duration-300"
+                        data-difficulty="${challenge.difficulty}"
+                    >
+                        <div class="h-40 bg-gray-800 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br ${gradient}"></div>
+                            <div class="absolute inset-0 flex items-center justify-center font-heading font-bold text-2xl text-white/20 group-hover:scale-110 transition duration-500 text-center px-4">
+                                ${challenge.title}
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-lg font-bold text-white group-hover:text-brand-purple transition">${challenge.title}</h3>
+                                <span class="text-xs px-2 py-0.5 rounded border ${difficultyClass}">${challenge.difficulty}</span>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-4 line-clamp-2">${challenge.description}</p>
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <span><i class="fa-regular fa-calendar mr-1"></i> ${challenge.tag}</span>
+                                <span class="text-brand-purple group-hover:text-white transition flex items-center gap-1">
+                                    Voir <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                `;
             });
-            btn.classList.remove('bg-white/5', 'text-gray-400');
-            btn.classList.add('bg-white', 'text-black');
 
-            const filter = btn.dataset.filter;
+            // Add placeholder cards for future history
+            for (let i = 0; i < totalPlaceholders; i++) {
+                html += `
+                    <div class="placeholder-card glass-panel rounded-xl overflow-hidden opacity-50 grayscale blur-[2px] pointer-events-none select-none relative">
+                        <div class="h-40 bg-gray-800/50"></div>
+                        <div class="p-5 space-y-3">
+                            <div class="h-6 bg-white/10 rounded w-3/4"></div>
+                            <div class="h-4 bg-white/5 rounded w-full"></div>
+                            <div class="h-4 bg-white/5 rounded w-1/2"></div>
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="bg-black/50 text-white px-3 py-1 rounded-full text-xs font-mono border border-white/10">Coming Soon</span>
+                        </div>
+                    </div>
+                `;
+            }
 
-            // Filter Cards
-            cards.forEach(card => {
-                const difficulty = card.dataset.difficulty;
-                if (filter === 'all' || difficulty === filter) {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
-                }
-            });
+            // Update the grid
+            grid.innerHTML = html;
 
-            // Handle Placeholders (Show only on 'all')
-            placeholders.forEach(p => {
-                if (filter === 'all') {
-                    p.classList.remove('hidden');
-                } else {
-                    p.classList.add('hidden');
-                }
+            // Initialize filtering
+            initFiltering();
+
+        } catch (e) {
+            console.error('Failed to parse challenges for archive', e);
+            grid.innerHTML = '<p class="text-red-400 col-span-3 text-center">Erreur de chargement des archives</p>';
+        }
+    }
+
+    function initFiltering() {
+        const cards = document.querySelectorAll('.project-card[data-difficulty]');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const placeholders = document.querySelectorAll('.placeholder-card');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update Active State
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-white', 'text-black');
+                    b.classList.add('bg-white/5', 'text-gray-400');
+                });
+                btn.classList.remove('bg-white/5', 'text-gray-400');
+                btn.classList.add('bg-white', 'text-black');
+
+                const filter = (btn as HTMLElement).dataset.filter;
+
+                // Filter Cards
+                cards.forEach(card => {
+                    const difficulty = (card as HTMLElement).dataset.difficulty;
+                    if (filter === 'all' || difficulty === filter) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+
+                // Handle Placeholders (Show only on 'all')
+                placeholders.forEach(p => {
+                    if (filter === 'all') {
+                        p.classList.remove('hidden');
+                    } else {
+                        p.classList.add('hidden');
+                    }
+                });
             });
         });
-    });
-</script>
+    }
 
+    // Initialize on page load
+    initArchive();
+</script>
