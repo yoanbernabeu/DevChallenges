@@ -7,19 +7,14 @@ import SolutionModal from '../../components/SolutionModal.astro';
 import SubmitCTA from '../../components/SubmitCTA.astro';
 import challenges from '../../data/challenges.json';
 
-export function getStaticPaths() {
-    const isDev = import.meta.env.DEV;
-    const now = new Date();
-    
-    // Filter challenges: in production, only show active and archived
-    const filteredChallenges = challenges.filter(challenge => {
-        if (isDev) return true; // Show all in dev
-        
-        const startDate = new Date(challenge.startDate.replace('Z', ''));
-        return now >= startDate; // Only show if started
-    });
+// Prerender all challenge pages at build time (static)
+// Status (active/archived/upcoming) is calculated CLIENT-SIDE
+export const prerender = true;
 
-    return filteredChallenges.map(challenge => ({
+export function getStaticPaths() {
+    // Generate ALL challenge pages - status will be determined client-side
+    // This ensures no rebuild is needed when a challenge becomes active/archived
+    return challenges.map(challenge => ({
         params: { id: challenge.id },
         props: { challenge }
     }));
@@ -27,76 +22,16 @@ export function getStaticPaths() {
 
 const { challenge } = Astro.props;
 
-// Compute challenge status and dates
-const now = new Date();
-const startDate = new Date(challenge.startDate.replace('Z', ''));
-const endDate = new Date(startDate);
-endDate.setDate(endDate.getDate() + 6);
-endDate.setHours(23, 59, 59, 999);
-
-type ChallengeStatus = 'upcoming' | 'active' | 'archived';
-let status: ChallengeStatus;
-if (now < startDate) {
-    status = 'upcoming';
-} else if (now >= startDate && now <= endDate) {
-    status = 'active';
-} else {
-    status = 'archived';
-}
-
-// Check if we're in dev mode
-const isDev = import.meta.env.DEV;
-
-// Format dates for display
-const formattedStartDate = new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-}).format(startDate);
-
-const formattedEndDate = new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    hour: 'numeric',
-    minute: 'numeric'
-}).format(endDate);
-
-// Difficulty colors
+// Difficulty colors (static, doesn't change)
 const difficultyColors = {
     Easy: 'bg-green-500/10 text-green-400 border-green-500/20',
     Medium: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
     Hard: 'bg-orange-500/10 text-orange-400 border-orange-500/20'
 };
 
-// Status labels and colors
-const statusConfig = {
-    upcoming: {
-        label: 'À venir',
-        color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-        icon: 'fa-clock'
-    },
-    active: {
-        label: 'En cours',
-        color: 'bg-red-500/10 text-red-400 border-red-500/20',
-        icon: 'fa-bolt'
-    },
-    archived: {
-        label: 'Terminé',
-        color: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
-        icon: 'fa-check'
-    }
-};
-
-const currentStatus = statusConfig[status];
-
-// Pass data to client
-const challengeData = JSON.stringify({
-    ...challenge,
-    endDate: endDate.toISOString(),
-    status
-});
+// Pass raw challenge data to client - status will be computed client-side
+// Client-side JS will check hostname to determine if in dev mode
+const challengeData = JSON.stringify(challenge);
 ---
 
 <Layout title={`${challenge.title} - DevChallenges`}>
@@ -110,15 +45,13 @@ const challengeData = JSON.stringify({
             Retour aux challenges
         </a>
 
-        <!-- Upcoming Warning (only in dev) -->
-        {status === 'upcoming' && isDev && (
-            <div class="mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 flex items-center gap-3">
-                <i class="fa-solid fa-eye-slash text-yellow-400"></i>
-                <p class="text-yellow-300 text-sm">
-                    <strong>Mode développement :</strong> Ce défi n'est pas encore visible en production.
-                </p>
-            </div>
-        )}
+        <!-- Upcoming Warning (shown dynamically by JS) -->
+        <div id="upcoming-warning" class="hidden mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 flex items-center gap-3">
+            <i class="fa-solid fa-clock text-yellow-400"></i>
+            <p class="text-yellow-300 text-sm">
+                <strong>Ce défi n'a pas encore commencé.</strong> Revenez bientôt !
+            </p>
+        </div>
 
         <!-- Challenge Header -->
         <div id="challenge-page" class="relative mb-12" data-challenge={challengeData}>
@@ -126,11 +59,11 @@ const challengeData = JSON.stringify({
             
             <div class="relative glass-panel rounded-xl overflow-hidden">
                 <div class="p-8 border-b border-white/5">
-                    <!-- Status & Tag -->
+                    <!-- Status & Tag (status badge updated by JS) -->
                     <div class="flex flex-wrap items-center gap-3 mb-4">
-                        <span class={`text-xs px-3 py-1 rounded-full border font-medium flex items-center gap-2 ${currentStatus.color}`}>
-                            <i class={`fa-solid ${currentStatus.icon}`}></i>
-                            {currentStatus.label}
+                        <span id="status-badge" class="text-xs px-3 py-1 rounded-full border font-medium flex items-center gap-2 bg-gray-500/10 text-gray-400 border-gray-500/20">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            Chargement...
                         </span>
                         <span class="text-gray-500 text-sm font-mono">#{challenge.tag}</span>
                         <span class={`text-xs px-2 py-0.5 rounded border ${difficultyColors[challenge.difficulty as keyof typeof difficultyColors]}`}>
@@ -142,33 +75,20 @@ const challengeData = JSON.stringify({
                     <h1 class="text-4xl font-bold text-white mb-4">{challenge.title}</h1>
                     <p class="text-gray-400 text-lg max-w-2xl">{challenge.description}</p>
 
-                    <!-- Dates -->
+                    <!-- Dates (filled by JS) -->
                     <div class="mt-6 flex flex-wrap gap-6 text-sm">
                         <div class="flex items-center gap-2 text-gray-400">
                             <i class="fa-regular fa-calendar text-brand-purple"></i>
-                            <span>Début: <span class="text-white capitalize">{formattedStartDate}</span></span>
+                            <span>Début: <span id="start-date" class="text-white capitalize">--</span></span>
                         </div>
                         <div class="flex items-center gap-2 text-gray-400">
                             <i class="fa-regular fa-calendar-check text-brand-pink"></i>
-                            <span>Fin: <span class="text-white capitalize">{formattedEndDate}</span></span>
+                            <span>Fin: <span id="end-date" class="text-white capitalize">--</span></span>
                         </div>
                     </div>
 
-                    <!-- Timer for active challenge -->
-                    {status === 'active' && (
-                        <div class="mt-6 inline-block bg-brand-surface rounded-lg p-4 border border-white/5">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Temps restant</p>
-                            <div id="timer-val" class="text-2xl font-mono font-bold text-white">--j --h --m --s</div>
-                        </div>
-                    )}
-
-                    <!-- Countdown for upcoming challenge -->
-                    {status === 'upcoming' && (
-                        <div class="mt-6 inline-block bg-yellow-500/5 rounded-lg p-4 border border-yellow-500/20">
-                            <p class="text-xs text-yellow-400 uppercase tracking-wider mb-1">Commence dans</p>
-                            <div id="countdown-val" class="text-2xl font-mono font-bold text-yellow-300">--j --h --m --s</div>
-                        </div>
-                    )}
+                    <!-- Timer container (content set by JS based on status) -->
+                    <div id="timer-container" class="mt-6"></div>
                 </div>
 
                 <!-- Brief Section -->
@@ -197,41 +117,51 @@ const challengeData = JSON.stringify({
                         </a>
                     )}
 
-                    <!-- CTA for active challenge -->
-                    {status === 'active' && (
-                        <SubmitCTA class="mt-8" />
-                    )}
+                    <!-- CTA for active challenge (shown by JS) -->
+                    <div id="submit-cta-container" class="hidden mt-8">
+                        <SubmitCTA />
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Participants Section (for active and archived) -->
-        {(status === 'active' || status === 'archived') && (
-            <div class="glass-panel rounded-xl p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-users text-brand-pink"></i>
-                        Solutions proposées
-                    </h2>
-                    <span id="participant-count" class="text-sm text-brand-purple font-mono">-- participants</span>
-                </div>
+        <!-- Participants Section (shown by JS for active and archived) -->
+        <div id="participants-section" class="hidden glass-panel rounded-xl p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-users text-brand-pink"></i>
+                    Solutions proposées
+                </h2>
+                <span id="participant-count" class="text-sm text-brand-purple font-mono">-- participants</span>
+            </div>
 
-                <div id="participants-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Loading State -->
-                    <div class="animate-pulse col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {[1, 2, 3].map(() => (
-                            <div class="flex items-center gap-3 p-4 rounded-lg bg-white/5 border border-white/5">
-                                <div class="w-10 h-10 rounded-full bg-white/10"></div>
-                                <div class="flex-1 space-y-2">
-                                    <div class="h-4 bg-white/10 rounded w-1/2"></div>
-                                    <div class="h-3 bg-white/5 rounded w-1/3"></div>
-                                </div>
-                            </div>
-                        ))}
+            <div id="participants-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Loading State -->
+                <div class="animate-pulse col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="flex items-center gap-3 p-4 rounded-lg bg-white/5 border border-white/5">
+                        <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-white/10 rounded w-1/2"></div>
+                            <div class="h-3 bg-white/5 rounded w-1/3"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 rounded-lg bg-white/5 border border-white/5">
+                        <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-white/10 rounded w-1/2"></div>
+                            <div class="h-3 bg-white/5 rounded w-1/3"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 rounded-lg bg-white/5 border border-white/5">
+                        <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-white/10 rounded w-1/2"></div>
+                            <div class="h-3 bg-white/5 rounded w-1/3"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        )}
+        </div>
 
         <!-- Share Section -->
         <div class="mt-8 text-center">
@@ -266,24 +196,137 @@ const challengeData = JSON.stringify({
 <script>
     import { getParticipants } from '../../utils/github';
 
-    const container = document.getElementById('challenge-page');
-    const challengeData = container?.dataset.challenge ? JSON.parse(container.dataset.challenge) : null;
+    // Wrap everything in an IIFE to allow early return
+    (function initChallengePage() {
+        const container = document.getElementById('challenge-page');
+        const challenge = container?.dataset.challenge ? JSON.parse(container.dataset.challenge) : null;
 
-    if (challengeData) {
-        const { tag, title, endDate, startDate, status } = challengeData;
+        if (!challenge) return;
+
+        const { tag, title, startDate: startDateStr } = challenge;
+
+        // Calculate dates and status CLIENT-SIDE (no rebuild needed!)
+        const now = new Date();
+        const startDate = new Date(startDateStr.replace('Z', ''));
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 6);
+        endDate.setHours(23, 59, 59, 999);
+
+        // Determine status based on CURRENT client time
+        type ChallengeStatus = 'upcoming' | 'active' | 'archived';
+        let status: ChallengeStatus;
+        if (now < startDate) {
+            status = 'upcoming';
+        } else if (now >= startDate && now <= endDate) {
+            status = 'active';
+        } else {
+            status = 'archived';
+        }
+
+        // Check if we're in dev mode by checking hostname
+        // localhost or 127.0.0.1 = development, anything else = production
+        const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+        // SECURITY: Redirect to home if accessing upcoming challenge in PRODUCTION
+        // Upcoming challenges should only be visible in development mode
+        if (status === 'upcoming' && !isDev) {
+            window.location.href = '/';
+            return; // Stop execution
+        }
+
+        // Status configuration
+        const statusConfig = {
+            upcoming: {
+                label: 'À venir',
+                color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+                icon: 'fa-clock'
+            },
+            active: {
+                label: 'En cours',
+                color: 'bg-red-500/10 text-red-400 border-red-500/20',
+                icon: 'fa-bolt'
+            },
+            archived: {
+                label: 'Terminé',
+                color: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+                icon: 'fa-check'
+            }
+        };
+
+        // Update status badge
+        const statusBadge = document.getElementById('status-badge');
+        if (statusBadge) {
+            const config = statusConfig[status];
+            statusBadge.className = `text-xs px-3 py-1 rounded-full border font-medium flex items-center gap-2 ${config.color}`;
+            statusBadge.innerHTML = `<i class="fa-solid ${config.icon}"></i> ${config.label}`;
+        }
+
+        // Update dates display
+        const startDateEl = document.getElementById('start-date');
+        const endDateEl = document.getElementById('end-date');
+        if (startDateEl) {
+            startDateEl.textContent = new Intl.DateTimeFormat('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }).format(startDate);
+        }
+        if (endDateEl) {
+            endDateEl.textContent = new Intl.DateTimeFormat('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                hour: 'numeric',
+                minute: 'numeric'
+            }).format(endDate);
+        }
+
+        // Show/hide elements based on status
+        const upcomingWarning = document.getElementById('upcoming-warning');
+        const timerContainer = document.getElementById('timer-container');
+        const submitCtaContainer = document.getElementById('submit-cta-container');
+        const participantsSection = document.getElementById('participants-section');
+
+        if (status === 'upcoming') {
+            upcomingWarning?.classList.remove('hidden');
+            // Create upcoming timer
+            if (timerContainer) {
+                timerContainer.innerHTML = `
+                    <div class="inline-block bg-yellow-500/5 rounded-lg p-4 border border-yellow-500/20">
+                        <p class="text-xs text-yellow-400 uppercase tracking-wider mb-1">Commence dans</p>
+                        <div id="countdown-val" class="text-2xl font-mono font-bold text-yellow-300">--j --h --m --s</div>
+                    </div>
+                `;
+            }
+        } else if (status === 'active') {
+            // Create active timer
+            if (timerContainer) {
+                timerContainer.innerHTML = `
+                    <div class="inline-block bg-brand-surface rounded-lg p-4 border border-white/5">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Temps restant</p>
+                        <div id="timer-val" class="text-2xl font-mono font-bold text-white">--j --h --m --s</div>
+                    </div>
+                `;
+            }
+            submitCtaContainer?.classList.remove('hidden');
+            participantsSection?.classList.remove('hidden');
+        } else if (status === 'archived') {
+            participantsSection?.classList.remove('hidden');
+        }
 
         // Timer Logic for active challenges
         if (status === 'active') {
             function updateTimer() {
-                const deadline = new Date(endDate);
-                const now = new Date().getTime();
-                const distance = deadline.getTime() - now;
+                const nowTime = new Date().getTime();
+                const distance = endDate.getTime() - nowTime;
 
                 const timerVal = document.getElementById('timer-val');
                 if (!timerVal) return;
 
                 if (distance < 0) {
                     timerVal.innerText = "Terminé";
+                    setTimeout(() => window.location.reload(), 2000);
                     return;
                 }
 
@@ -302,16 +345,14 @@ const challengeData = JSON.stringify({
         // Countdown for upcoming challenges
         if (status === 'upcoming') {
             function updateCountdown() {
-                const start = new Date(challengeData.startDate.replace('Z', ''));
-                const now = new Date().getTime();
-                const distance = start.getTime() - now;
+                const nowTime = new Date().getTime();
+                const distance = startDate.getTime() - nowTime;
 
                 const countdownVal = document.getElementById('countdown-val');
                 if (!countdownVal) return;
 
                 if (distance < 0) {
                     countdownVal.innerText = "C'est parti !";
-                    // Reload page to update status
                     setTimeout(() => window.location.reload(), 1000);
                     return;
                 }
@@ -368,11 +409,14 @@ const challengeData = JSON.stringify({
                                 </button>
                             `).join('');
 
+                            // Store participants for click handlers
+                            (window as any).__challengeParticipants = participants;
+
                             // Add click handlers for solution buttons
                             document.querySelectorAll('.solution-btn').forEach(btn => {
                                 btn.addEventListener('click', () => {
                                     const index = parseInt(btn.getAttribute('data-index') || '0');
-                                    const participant = participants[index];
+                                    const participant = (window as any).__challengeParticipants[index];
                                     document.dispatchEvent(new CustomEvent('open-solution-modal', { 
                                         detail: { participant } 
                                     }));
@@ -397,9 +441,9 @@ const challengeData = JSON.stringify({
                 document.dispatchEvent(new CustomEvent('open-submission-modal', { detail: { tag, title } }));
             });
         }
-    }
+    })(); // End of IIFE
 
-    // Copy link button
+    // Copy link button (outside IIFE - always runs)
     const copyBtn = document.getElementById('copy-link-btn');
     const feedback = document.getElementById('copy-feedback');
     

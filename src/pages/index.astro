@@ -4,9 +4,13 @@ import Navbar from '../components/Navbar.astro';
 import Hero from '../components/Hero.astro';
 import ActiveChallenge from '../components/ActiveChallenge.astro';
 import Archive from '../components/Archive.astro';
+import Discussions from '../components/Discussions.astro';
 import Footer from '../components/Footer.astro';
 import SubmissionModal from '../components/SubmissionModal.astro';
 import SolutionModal from '../components/SolutionModal.astro';
+
+// Prerender this page at build time (static)
+export const prerender = true;
 ---
 
 <Layout title="DevChallenges - Construisez votre portfolio, une semaine à la fois.">
@@ -25,6 +29,9 @@ import SolutionModal from '../components/SolutionModal.astro';
 
 		<!-- PAST PROJECTS GRID (Infinite Scroll Vibe) -->
 		<Archive />
+
+		<!-- COMMUNITY DISCUSSIONS -->
+		<Discussions />
 	</main>
 
 	<!-- Footer avec CTA Idea -->

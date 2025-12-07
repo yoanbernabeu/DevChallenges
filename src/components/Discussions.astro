@@ -1,0 +1,266 @@
+---
+// Component for displaying GitHub Discussions
+// Data is fetched client-side via a secure server-side API route
+// The GitHub token is stored securely in Netlify environment variables
+---
+
+<section id="discussions" class="space-y-6">
+    <div class="flex justify-between items-end border-b border-white/10 pb-4">
+        <div>
+            <h2 class="text-3xl font-bold text-white flex items-center gap-3">
+                <i class="fa-regular fa-comments text-brand-purple"></i>
+                Discussions
+            </h2>
+            <p class="text-gray-400 text-sm mt-1">Échangez avec la communauté DevChallenges</p>
+        </div>
+        <a 
+            href="https://github.com/yoanbernabeu/DevChallenges/discussions" 
+            target="_blank"
+            class="text-sm text-brand-purple hover:text-white transition flex items-center gap-2"
+        >
+            Voir tout <i class="fa-solid fa-external-link-alt text-xs"></i>
+        </a>
+    </div>
+
+    <div id="discussions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Loading State -->
+        <div class="discussion-loading glass-panel rounded-xl p-5 animate-pulse">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                <div class="flex-1 space-y-2">
+                    <div class="h-4 bg-white/10 rounded w-24"></div>
+                    <div class="h-3 bg-white/5 rounded w-16"></div>
+                </div>
+            </div>
+            <div class="h-5 bg-white/10 rounded w-3/4 mb-2"></div>
+            <div class="h-4 bg-white/5 rounded w-1/2"></div>
+        </div>
+        <div class="discussion-loading glass-panel rounded-xl p-5 animate-pulse hidden md:block">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                <div class="flex-1 space-y-2">
+                    <div class="h-4 bg-white/10 rounded w-24"></div>
+                    <div class="h-3 bg-white/5 rounded w-16"></div>
+                </div>
+            </div>
+            <div class="h-5 bg-white/10 rounded w-3/4 mb-2"></div>
+            <div class="h-4 bg-white/5 rounded w-1/2"></div>
+        </div>
+        <div class="discussion-loading glass-panel rounded-xl p-5 animate-pulse hidden lg:block">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-white/10"></div>
+                <div class="flex-1 space-y-2">
+                    <div class="h-4 bg-white/10 rounded w-24"></div>
+                    <div class="h-3 bg-white/5 rounded w-16"></div>
+                </div>
+            </div>
+            <div class="h-5 bg-white/10 rounded w-3/4 mb-2"></div>
+            <div class="h-4 bg-white/5 rounded w-1/2"></div>
+        </div>
+    </div>
+
+    <!-- CTA to join discussions -->
+    <div class="flex justify-center pt-4">
+        <a 
+            href="https://github.com/yoanbernabeu/DevChallenges/discussions/new/choose"
+            target="_blank"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-brand-purple/30 hover:text-white transition group"
+        >
+            <i class="fa-solid fa-plus text-brand-purple group-hover:rotate-90 transition-transform"></i>
+            Démarrer une discussion
+        </a>
+    </div>
+</section>
+
+<script>
+    // Fetch discussions from our secure server-side API route
+    // The GitHub token is never exposed to the client
+    
+    interface Discussion {
+        id: string;
+        title: string;
+        url: string;
+        createdAt: string;
+        author: {
+            login: string;
+            avatarUrl: string;
+        };
+        category: {
+            name: string;
+            emoji: string;
+        };
+        comments: {
+            totalCount: number;
+        };
+        upvoteCount: number;
+    }
+
+    async function fetchDiscussions(limit: number = 6): Promise<Discussion[]> {
+        try {
+            const response = await fetch(`/api/discussions?limit=${limit}`);
+            if (!response.ok) return [];
+            const data = await response.json();
+            return data.discussions || [];
+        } catch (error) {
+            console.error('Failed to fetch discussions:', error);
+            return [];
+        }
+    }
+
+    // Category emoji mapping
+    const categoryEmojis: Record<string, string> = {
+        'Announcements': '📣',
+        'General': '💬',
+        'Ideas': '💡',
+        'Polls': '🗳️',
+        'Q&A': '🙏',
+        'Show and tell': '🙌',
+    };
+
+    // Category colors
+    const categoryColors: Record<string, string> = {
+        'Announcements': 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+        'General': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+        'Ideas': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+        'Polls': 'bg-green-500/10 text-green-400 border-green-500/20',
+        'Q&A': 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+        'Show and tell': 'bg-pink-500/10 text-pink-400 border-pink-500/20',
+    };
+
+    function formatRelativeTime(dateString: string): string {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+
+        if (diffMins < 1) return "À l'instant";
+        if (diffMins < 60) return `Il y a ${diffMins} min`;
+        if (diffHours < 24) return `Il y a ${diffHours}h`;
+        if (diffDays < 7) return `Il y a ${diffDays}j`;
+        
+        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    }
+
+    async function initDiscussions() {
+        const grid = document.getElementById('discussions-grid');
+        if (!grid) return;
+
+        try {
+            // Fetch from our secure server-side API route
+            const discussions = await fetchDiscussions(6);
+
+            if (discussions.length === 0) {
+                // Show fallback UI when no discussions are fetched
+                grid.innerHTML = `
+                    <div class="col-span-full">
+                        <div class="glass-panel rounded-xl p-8 text-center">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-brand-purple/10 flex items-center justify-center">
+                                <i class="fa-regular fa-comments text-2xl text-brand-purple"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-2">Rejoignez la discussion !</h3>
+                            <p class="text-gray-400 text-sm mb-4 max-w-md mx-auto">
+                                La communauté DevChallenges est active sur GitHub Discussions. 
+                                Posez vos questions, partagez vos idées et connectez-vous avec d'autres développeurs.
+                            </p>
+                            <a 
+                                href="https://github.com/yoanbernabeu/DevChallenges/discussions" 
+                                target="_blank"
+                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white font-medium rounded-lg hover:bg-brand-purple/80 transition"
+                            >
+                                <i class="fa-brands fa-github"></i>
+                                Voir les discussions
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Build discussions HTML
+            let html = '';
+            discussions.forEach((discussion) => {
+                const categoryName = discussion.category?.name || 'General';
+                const emoji = discussion.category?.emoji || categoryEmojis[categoryName] || '💬';
+                const colorClass = categoryColors[categoryName] || 'bg-white/5 text-gray-400 border-white/10';
+                const timeAgo = formatRelativeTime(discussion.createdAt);
+
+                html += `
+                    <a 
+                        href="${discussion.url}" 
+                        target="_blank"
+                        class="glass-panel rounded-xl p-5 hover:border-brand-purple/50 transition duration-300 group block"
+                    >
+                        <!-- Header with author -->
+                        <div class="flex items-center gap-3 mb-3">
+                            <img 
+                                src="${discussion.author?.avatarUrl || 'https://github.com/ghost.png'}" 
+                                alt="${discussion.author?.login || 'Anonyme'}"
+                                class="w-9 h-9 rounded-full border border-white/10"
+                            />
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-white truncate">${discussion.author?.login || 'Anonyme'}</p>
+                                <p class="text-xs text-gray-500">${timeAgo}</p>
+                            </div>
+                            <span class="text-xs px-2 py-0.5 rounded-full border ${colorClass}">
+                                ${emoji}
+                            </span>
+                        </div>
+
+                        <!-- Title -->
+                        <h3 class="text-white font-medium mb-3 line-clamp-2 group-hover:text-brand-purple transition">
+                            ${discussion.title}
+                        </h3>
+
+                        <!-- Footer stats -->
+                        <div class="flex items-center gap-4 text-xs text-gray-500">
+                            <span class="flex items-center gap-1">
+                                <i class="fa-regular fa-comment"></i>
+                                ${discussion.comments?.totalCount || 0}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-up"></i>
+                                ${discussion.upvoteCount || 0}
+                            </span>
+                            <span class="ml-auto text-brand-purple opacity-0 group-hover:opacity-100 transition flex items-center gap-1">
+                                Voir <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </span>
+                        </div>
+                    </a>
+                `;
+            });
+
+            grid.innerHTML = html;
+
+        } catch (error) {
+            console.error('Failed to load discussions:', error);
+            grid.innerHTML = `
+                <div class="col-span-full">
+                    <div class="glass-panel rounded-xl p-8 text-center">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-brand-purple/10 flex items-center justify-center">
+                            <i class="fa-regular fa-comments text-2xl text-brand-purple"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Rejoignez la discussion !</h3>
+                        <p class="text-gray-400 text-sm mb-4 max-w-md mx-auto">
+                            Découvrez les échanges de la communauté DevChallenges sur GitHub Discussions.
+                        </p>
+                        <a 
+                            href="https://github.com/yoanbernabeu/DevChallenges/discussions" 
+                            target="_blank"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white font-medium rounded-lg hover:bg-brand-purple/80 transition"
+                        >
+                            <i class="fa-brands fa-github"></i>
+                            Voir les discussions
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // Initialize on page load
+    initDiscussions();
+</script>

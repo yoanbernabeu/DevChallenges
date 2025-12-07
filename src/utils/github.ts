@@ -108,6 +108,106 @@ export async function getParticipants(tag: string): Promise<Participant[]> {
     }
 }
 
+// ============================================
+// DISCUSSIONS API (GraphQL)
+// ============================================
+
+export interface Discussion {
+    id: string;
+    title: string;
+    url: string;
+    createdAt: string;
+    author: {
+        login: string;
+        avatarUrl: string;
+    };
+    category: {
+        name: string;
+        emoji: string;
+    };
+    comments: {
+        totalCount: number;
+    };
+    upvoteCount: number;
+}
+
+export async function getDiscussions(limit: number = 5, token?: string): Promise<Discussion[]> {
+    // Check cache first
+    const cached = getFromCache<Discussion[]>(`discussions_${limit}`);
+    if (cached) {
+        console.log(`[Cache] Using cached discussions`);
+        return cached;
+    }
+
+    // If no token provided, return empty (fallback UI will be shown)
+    if (!token) {
+        console.log('[Discussions] No GitHub token provided, using fallback UI');
+        return [];
+    }
+
+    try {
+        // GraphQL query for discussions
+        const query = `
+            query {
+                repository(owner: "${REPO_OWNER}", name: "${REPO_NAME}") {
+                    discussions(first: ${limit}, orderBy: {field: CREATED_AT, direction: DESC}) {
+                        nodes {
+                            id
+                            title
+                            url
+                            createdAt
+                            author {
+                                login
+                                avatarUrl
+                            }
+                            category {
+                                name
+                                emoji
+                            }
+                            comments {
+                                totalCount
+                            }
+                            upvoteCount
+                        }
+                    }
+                }
+            }
+        `;
+
+        const response = await fetch('https://api.github.com/graphql', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ query }),
+        });
+
+        if (!response.ok) {
+            console.warn('GraphQL request failed:', response.status);
+            return [];
+        }
+
+        const result = await response.json();
+        
+        if (result.errors) {
+            console.warn('GraphQL errors:', result.errors);
+            return [];
+        }
+
+        const discussions: Discussion[] = result.data?.repository?.discussions?.nodes || [];
+
+        // Store in cache
+        setInCache(`discussions_${limit}`, discussions);
+        console.log(`[Cache] Stored discussions`);
+
+        return discussions;
+    } catch (error) {
+        console.error('Error fetching discussions:', error);
+        return [];
+    }
+}
+
 export async function getIssueComments(issueNumber: number): Promise<IssueComment[]> {
     // Check cache first
     const cached = getFromCache<IssueComment[]>(`comments_${issueNumber}`);
