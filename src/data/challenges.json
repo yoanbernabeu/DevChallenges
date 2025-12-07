@@ -22,7 +22,7 @@
     {
         "id": "week-49",
         "slug": "neural-lofi",
-        "title": "Neural_Lofi — Générateur Lo-Fi IA",
+        "title": "Neural Lofi — Générateur Lo-Fi IA",
         "description": "Créez un générateur de musique Lo-Fi propulsé par l'Intelligence Artificielle.",
         "brief": "<br>🎵 <strong>Implémentez l'application Neural_Lofi de A à Z</strong> en respectant les specs fournies.<br><br><strong>Fonctionnalités :</strong><ul><li>🎵 Générer de la musique Lo-Fi via l'API MusicGPT</li><li>🎨 Choisir un style musical (Classic, Indian, African, Asian, Latino)</li><li>🔊 Ajouter des textures sonores (Rain, Vinyl, City, Typing)</li><li>📚 Consulter une bibliothèque des morceaux générés</li><li>▶️ Lecteur audio avancé (crossfade, visualisation)</li></ul>",
         "startDate": "2025-12-07T00:00:00Z",
