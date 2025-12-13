@@ -32,13 +32,13 @@
     },
     {
         "id": "week-50",
-        "slug": "compte-rebours-2026",
-        "title": "Compte à rebours 2026",
-        "description": "Manipulation du temps.",
-        "brief": "<br>Affichez un compteur Jours/Heures/Minutes/Secondes qui s'actualise chaque seconde vers le 1er Janvier minuit.",
+        "slug": "qualite-eau-potable",
+        "title": "Qualité de l'Eau Potable",
+        "description": "Exploiter une API gouvernementale open data.",
+        "brief": "<br>Saviez-vous que les données sur la qualité de l'eau potable en France sont publiques et accessibles via une API ? C'est l'occasion parfaite de créer une application utile qui permet aux citoyens et citoyennes de consulter les résultats des contrôles sanitaires de leur commune !<br><br>Utilisez l'API <strong>Hub'Eau</strong> pour créer une app qui permet de :<ul><li>🔍 Rechercher une commune par son nom ou code INSEE</li><li>💧 Afficher les résultats des analyses de l'eau (Nitrates, Dureté, etc.)</li><li>📊 Visualiser l'historique des contrôles sanitaires</li></ul><br>Le format est libre : App Web, App Mobile, CLI, Bot Discord... laissez parler votre créativité !<br><br><strong>Ressource :</strong><br><a href='https://hubeau.eaufrance.fr/page/api-qualite-eau-potable' target='_blank'>hubeau.eaufrance.fr/page/api-qualite-eau-potable</a>",
         "startDate": "2025-12-14T00:00:00Z",
         "tag": "WEEK-50",
-        "difficulty": "Easy"
+        "difficulty": "Medium"
     },
     {
         "id": "week-51",
