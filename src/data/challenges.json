@@ -42,10 +42,10 @@
     },
     {
         "id": "week-51",
-        "slug": "carte-voeux-ai",
-        "title": "API Rédacteur de Vœux (IA)",
-        "description": "Génération de texte via API.",
-        "brief": "<br>Un script qui reçoit un nom et un style (humour, sérieux) et retourne un texte de vœux généré par IA.",
+        "slug": "animation-noel-css",
+        "title": "Animation de Noël Full CSS",
+        "description": "Créez une animation festive uniquement en CSS, sans JavaScript.",
+        "brief": "<br>🎄 <strong>Le challenge :</strong> Réalisez une animation de Noël entièrement en CSS pur, sans aucune ligne de JavaScript !<br><br><strong>Contraintes :</strong><ul><li>📄 UN fichier HTML maximum</li><li>🎨 UN fichier CSS maximum</li><li>🚫 Aucun JavaScript autorisé</li></ul><br><strong>Idées d'animations :</strong><ul><li>🎅 Père Noël qui fait un signe de la main</li><li>❄️ Neige qui tombe sur des montagnes</li><li>🦌 Traîneau qui traverse le ciel</li><li>🎁 Sapin qui se décore progressivement</li><li>⭐ Étoile filante dans un ciel étoilé</li></ul><br>Laissez parler votre créativité ! L'animation doit être fluide et festive. Utilisez les <code>@keyframes</code>, <code>transform</code>, <code>animation</code> et toutes les propriétés CSS à votre disposition.",
         "startDate": "2025-12-21T00:00:00Z",
         "tag": "WEEK-51",
         "difficulty": "Medium"
