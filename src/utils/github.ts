@@ -84,18 +84,28 @@ export async function getParticipants(tag: string): Promise<Participant[]> {
 
         const data = await response.json();
 
-        // Map issues to participants
-        // We assume one issue per participant per challenge
-        const participants: Participant[] = data.items.map((issue: any) => ({
-            username: issue.user.login,
-            avatarUrl: issue.user.avatar_url,
-            url: issue.html_url,
-            body: issue.body || '',
-            issueNumber: issue.number,
-            title: issue.title,
-            // We could try to extract stack from body if structured, but for now let's keep it simple
-            // or maybe random/placeholder if not found, but better to just show username
-        }));
+        // Create regex to match the exact hashtag (e.g., #WEEK-52)
+        // This ensures we don't match #WEEK-51 issues that just mention WEEK-52 somewhere
+        const hashtagPattern = new RegExp(`#${tag}\\b`, 'i');
+
+        // Map issues to participants, filtering only those with the exact hashtag
+        const participants: Participant[] = data.items
+            .filter((issue: any) => {
+                const title = issue.title || '';
+                const body = issue.body || '';
+                // Check if the exact hashtag #WEEK-XX is present in title or body
+                return hashtagPattern.test(title) || hashtagPattern.test(body);
+            })
+            .map((issue: any) => ({
+                username: issue.user.login,
+                avatarUrl: issue.user.avatar_url,
+                url: issue.html_url,
+                body: issue.body || '',
+                issueNumber: issue.number,
+                title: issue.title,
+                // We could try to extract stack from body if structured, but for now let's keep it simple
+                // or maybe random/placeholder if not found, but better to just show username
+            }));
 
         // Store in cache
         setInCache(`participants_${tag}`, participants);
