@@ -72,10 +72,10 @@
     },
     {
         "id": "2026-week-02",
-        "slug": "traducteur-argot-ai",
-        "title": "Traducteur Langage Jeune (IA)",
-        "description": "Wrapper d'API IA.",
-        "brief": "<br>Route API qui prend une phrase formelle et demande à l'IA de la réécrire en langage 'jeune' ou SMS.",
+        "slug": "ohio-final-boss-ai",
+        "title": "Ohio Final Boss (IA)",
+        "description": "Quand ton email devient un shitpost.",
+        "brief": "<br>Route API qui prend n'importe quel texte de normie (email de ta banque, message de ton ex, lettre de motivation...) et le transforme en chef-d'œuvre brainrot via IA. Exigences minimales : 'skibidi', 'gyatt', 'rizz' ou 'sigma' obligatoire. L'IA doit aussi inventer un ratio fictif à la fin (ex: 'ratio + L + you fell off'). Mode hardcore : le texte doit être illisible pour toute personne de plus de 25 ans.",
         "startDate": "2026-01-11T00:00:00Z",
         "tag": "2026-WEEK-02",
         "difficulty": "Easy"
