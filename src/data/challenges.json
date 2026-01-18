@@ -82,13 +82,13 @@
     },
     {
         "id": "2026-week-03",
-        "slug": "sound-box",
-        "title": "Boîte à Sons",
-        "description": "Interaction DOM et Audio.",
-        "brief": "<br>Une page avec des boutons. Au clic, jouer un son (balise <code>audio</code> HTML5). Gérer le clavier pour déclencher les sons avec les touches.",
+        "slug": "vacances-countdown",
+        "title": "Countdown Vacances Scolaires",
+        "description": "API gouvernementale et géolocalisation navigateur.",
+        "brief": "<br>🏖️ <strong>Le challenge :</strong> Créez une app mobile-first qui affiche un décompte jusqu'aux prochaines vacances scolaires (ou jusqu'à la rentrée si on est en vacances).<br><br><strong>Fonctionnalités :</strong><ul><li>📍 Détection GPS via le navigateur pour identifier l'académie de l'utilisateur</li><li>📅 Utilisation de l'API Calendrier Scolaire de data.gouv.fr</li><li>⏱️ Décompte dynamique \"Prochaines vacances dans X jours\" ou \"Retour à l'école dans X jours\"</li><li>🎨 Interface fun et colorée, mobile-first</li></ul><br><strong>Ressource :</strong><br><a href='https://www.data.gouv.fr/fr/dataservices/api-calendrier-scolaire/' target='_blank'>API Calendrier Scolaire</a>",
         "startDate": "2026-01-18T00:00:00Z",
         "tag": "2026-WEEK-03",
-        "difficulty": "Easy"
+        "difficulty": "Medium"
     },
     {
         "id": "2026-week-04",
